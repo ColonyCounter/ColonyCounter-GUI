@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="8" column="1">
+    <item row="7" column="1">
      <widget class="QPushButton" name="countCellsButton">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -29,20 +29,13 @@
      </widget>
     </item>
     <item row="1" column="1">
-     <widget class="QPushButton" name="resizeButton">
-      <property name="text">
-       <string>Resize</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
      <widget class="QPushButton" name="chooseCircleButton">
       <property name="text">
        <string>Choose petri dish</string>
       </property>
      </widget>
     </item>
-    <item row="9" column="1" rowspan="8">
+    <item row="8" column="1" rowspan="8">
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -55,7 +48,7 @@
       </property>
      </spacer>
     </item>
-    <item row="3" column="1">
+    <item row="2" column="1">
      <widget class="QLabel" name="thresholdValueLabel">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -68,7 +61,7 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="0" rowspan="17">
+    <item row="0" column="0" rowspan="16">
      <widget class="QLabel" name="imgLabel">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -81,7 +74,7 @@
       </property>
      </widget>
     </item>
-    <item row="7" column="1">
+    <item row="6" column="1">
      <widget class="QLabel" name="countCellsLabel">
       <property name="text">
        <string>0</string>
@@ -91,7 +84,7 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="1">
+    <item row="3" column="1">
      <widget class="QSpinBox" name="thresholdValueSpin">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -107,7 +100,23 @@
       </property>
      </widget>
     </item>
-    <item row="6" column="1">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="loadImageButton">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>31</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Load Image</string>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
      <widget class="QComboBox" name="thresholdTypeBox">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -145,23 +154,7 @@
       </item>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="loadImageButton">
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>31</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Load Image</string>
-      </property>
-      <property name="default">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="1">
+    <item row="4" column="1">
      <widget class="QLabel" name="thresholdTypeLabel">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
