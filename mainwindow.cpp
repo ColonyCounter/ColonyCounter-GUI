@@ -36,7 +36,6 @@ void MainWindow::updateImgLabel()
 {
     //Convert imgQ to Pixmap and display in label
     pixmapImg = QPixmap::fromImage(Cells.return_imgQ(), 0);
-    ui->imgLabel->setPixmap(pixmapImg);
 
     int w  = ui->imgLabel->width();
     int h  = ui->imgLabel->height();
