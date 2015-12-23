@@ -45,10 +45,37 @@ void CellCounter::thresholdTypeChanged(int thresholdTypeArg)
     return;
 }
 
-int CellCounter::countColonies(void)
+int CellCounter::countColonies(QPoint circleCenter, int circleRadius, QPoint pixmapSize)
 {
-    qDebug("Starting counting colonies.");
+    qDebug() << "Starting counting colonies on: " << this->return_imgPath();
 
+    //Recalculate factor for radius and circleCenter
+    float factorWidth = this->img.rows / pixmapSize.x();
+    float factorHeight = this->img.cols / pixmapSize.y();
+
+    //convert QPoint to OpenCV point
+    cv::Point2i circleCenterPoint;
+    circleCenterPoint.x = circleCenter.x() * factorWidth;
+    circleCenterPoint.y = circleCenter.y() * factorHeight;
+    circleRadius *= factorWidth;//Work right know as KeepAspectRatio is true
+
+    //Create mask of petri dish
+    cv::Mat mask = cv::Mat::zeros(this->img.rows, this->img.cols, CV_8UC1);
+    cv::circle(mask, circleCenterPoint, circleRadius, cv::Scalar(255, 255, 255), -1); //-1 means circle is filled, lineType=8 and shift= 0 << standard values
+    this->img.copyTo(this->imgPetriDish, mask);
+
+    //Just for debugging
+    imwrite("img.jpg", this->img);
+    qDebug() << "Saved img to: img.jpg";
+    imwrite("mask.jpg", mask);
+    qDebug() << "Saved mask to: img/mask.jpg";
+    imwrite("imgPetriDish.jpg", this->imgPetriDish);
+    qDebug() << "Saved imgPetriDish to: imgPetriDish.jpg";
+
+    //Maybe set ROi before tor educe img size
+    // cv::Mat roi( img, cv::Rect( center.x-radius, center.y-radius, radius*2, radius*2 ) );
+
+    /*
     //Threshold to Binary Inverted to get white blobs
     //And change to user defined threshold value
     cv::Mat imgProcessed;
@@ -85,6 +112,10 @@ int CellCounter::countColonies(void)
     imgQ = QImage((uchar*) imgProcessed.data, imgProcessed.cols, imgProcessed.rows, imgProcessed.step, QImage::Format_Indexed8);
     qDebug("%d", currentPoints);
     return currentPoints;
+    */
+
+    //maybe emit signal when finished to update ui
+    //connect(&watcher, SIGNAL(finished()), &myObject, SLOT(handleFinished()));
 }
 
 void CellCounter::set_imgPath(QString fileName)

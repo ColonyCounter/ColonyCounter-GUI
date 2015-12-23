@@ -6,6 +6,8 @@
 #include <QPixmap>
 #include <QGraphicsScene>
 
+#include <QDebug>
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -21,7 +23,8 @@
 
 class CellCounter
 {
-    cv::Mat imgOriginal, imgGray, img; //img is the one that changes
+protected:
+    cv::Mat imgOriginal, imgGray, img, imgPetriDish; //img is the one that changes
     QImage imgQOriginal, imgQ; //Saved for qt so we can just convert to Pixmap
     QString imgPath = "";
     int thresholdValue = 1;
@@ -34,7 +37,7 @@ public:
     int loadImage(QString);
     void thresholdValueChanged(int);
     void thresholdTypeChanged(int);
-    int countColonies(void);
+    int countColonies(QPoint, int, QPoint);
 
     void set_imgPath(QString);
     QString return_imgPath(void);

@@ -64,7 +64,9 @@ private:
     bool drawCircle = false; //gets false in updateImgLabel
     bool drawCircleAllowed = false; //gets false when button to accept circle was pressed
     bool updateCircleAllowed = false; //gets false in doUpdateCircle
+    QPoint pixmapSize;
     QPoint mouseCurrentPos;
+    QPoint circleCenter;
     int circleRadius = 150;
 };
 

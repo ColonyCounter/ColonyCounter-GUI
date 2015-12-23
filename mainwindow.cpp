@@ -38,10 +38,14 @@ void MainWindow::updateImgLabel()
     pixmapImg = QPixmap::fromImage(Cells.return_imgQ(), 0);
     ui->imgLabel->setPixmap(pixmapImg);
 
-    int w = ui->imgLabel->width();
-    int h = ui->imgLabel->height();
+    int w  = ui->imgLabel->width();
+    int h  = ui->imgLabel->height();
 
     pixmapImg = pixmapImg.scaled(w,h,Qt::KeepAspectRatio);
+    //Pixmap width and height different to ui->imgLabel's
+    this->pixmapSize.setX(pixmapImg.width());
+    this->pixmapSize.setY(pixmapImg.height());
+
 
     if( this->drawCircle ) {
         QPainter painter(&(this->pixmapImg));
@@ -92,7 +96,7 @@ void MainWindow::on_countCellsButton_clicked()
     //ui->countCellsLabel->setText("str");
     //Start new thread to run countCells function, otherwise GUI freezes
     QFutureWatcher<int> watcher;
-    watcher.setFuture(QtConcurrent::run(&Cells, &CellCounter::countColonies));
+    watcher.setFuture(QtConcurrent::run(&Cells, &CellCounter::countColonies, this->circleCenter, this->circleRadius, this->pixmapSize));
     //QFuture<int> future = QtConcurrent::run(&Cells, &CellCounter::countColonies);
 
     //qDebug() << future.result();
@@ -155,6 +159,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     if( !drawCircle && drawCircleAllowed ) {
         this->mouseCurrentPos.setX(mouseEvent->pos().x());
         this->mouseCurrentPos.setY(mouseEvent->pos().y());
+        this->circleCenter = this->mouseCurrentPos;
 
         this->drawCircle = this->updateCircleAllowed = true;
         QTimer::singleShot(100, this, SLOT(updateCircle()));
