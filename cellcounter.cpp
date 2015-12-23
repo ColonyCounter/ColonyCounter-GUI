@@ -60,10 +60,12 @@ int CellCounter::countColonies(QPoint circleCenter, int circleRadius, QPoint pix
     circleRadius *= factorWidth;//Work right know as KeepAspectRatio is true
 
     //Create mask of petri dish
-    //cv::Mat imgRoi( this->img, cv::Rect( circleCenterPoint.x, circleCenterPoint.y, circleRadius, circleRadius ) );
     cv::Mat mask = cv::Mat::zeros(this->img.rows, this->img.cols, CV_8UC1);
     cv::circle(mask, circleCenterPoint, circleRadius, cv::Scalar(255, 255, 255), -1); //-1 means circle is filled, lineType=8 and shift= 0 << standard values
     this->img.copyTo(this->imgPetriDish, mask);
+
+    //Create Region of Interest, use this one in the loops -> contains fewer pixels
+    cv::Mat imgRoi(this->imgPetriDish, cv::Rect(circleCenterPoint.x-circleRadius, circleCenterPoint.y-circleRadius, circleRadius*2, circleRadius*2));
 
     //Just for debugging
     imwrite("img.jpg", this->img);
@@ -72,8 +74,8 @@ int CellCounter::countColonies(QPoint circleCenter, int circleRadius, QPoint pix
     qDebug() << "Saved mask to: img/mask.jpg";
     imwrite("imgPetriDish.jpg", this->imgPetriDish);
     qDebug() << "Saved imgPetriDish to: imgPetriDish.jpg";
-    //imwrite("imgRoi.jpg", imgRoi);
-    //qDebug() << "Saved imgRoi to: imgRoi.jpg";
+    imwrite("imgRoi.jpg", imgRoi);
+    qDebug() << "Saved imgRoi to: imgRoi.jpg";
 
     //Maybe set ROi before tor educe img size
     // cv::Mat roi( img, cv::Rect( center.x-radius, center.y-radius, radius*2, radius*2 ) );
