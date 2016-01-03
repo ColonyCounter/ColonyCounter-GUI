@@ -12,17 +12,15 @@ int CellCounter::loadImage(QString fileName)
         return 0;
     }
 
-    imgOriginal = cv::imread(fileName.toStdString().c_str(), CV_LOAD_IMAGE_COLOR);
+    this->imgOriginal = cv::imread(fileName.toStdString().c_str(), CV_LOAD_IMAGE_COLOR);
 
-    if( imgOriginal.empty() ) {
+    if( this->imgOriginal.empty() || !(this->imgOriginal.data) ) {
         qWarning("f: Image is empty.");
         return 0;
     }
 
     //cv::cvtColor(img, img, CV_BGR2RGB); //Qt uses RGB and opencv BGR
     cv::cvtColor(imgOriginal, imgGray, CV_BGR2GRAY);
-
-    imgQOriginal = QImage((uchar*) imgOriginal.data, imgOriginal.cols, imgOriginal.rows, imgOriginal.step, QImage::Format_RGB888); //not needed right know and false conversion (FORMAT)
 
     return 1;
 }
@@ -57,14 +55,19 @@ int CellCounter::countColonies(QPoint circleCenter, int circleRadius, QPoint pix
     cv::Point2i circleCenterPoint;
     circleCenterPoint.x = circleCenter.x() * factorWidth;
     circleCenterPoint.y = circleCenter.y() * factorHeight;
-    circleRadius *= factorWidth;//Work right know as KeepAspectRatio is true
+    circleRadius *= factorWidth;//Works right know as KeepAspectRatio is true
+
+    //Change img to BINARY_INVERTED
+    if(this->thresholdType != BINARY_INVERTED) {
+        cv::threshold(this->img, this->img, BINARY_INVERTED, 255, this->thresholdType);
+    }
 
     //Create mask of petri dish
     cv::Mat mask = cv::Mat::zeros(this->img.rows, this->img.cols, CV_8UC1);
     cv::circle(mask, circleCenterPoint, circleRadius, cv::Scalar(255, 255, 255), -1); //-1 means circle is filled, lineType=8 and shift= 0 << standard values
     this->img.copyTo(this->imgPetriDish, mask);
 
-    //Create Region of Interest, use this one in the loops -> contains fewer pixels
+    //Create Region of Interest, reduzed size
     cv::Mat imgRoi(this->imgPetriDish, cv::Rect(circleCenterPoint.x-circleRadius, circleCenterPoint.y-circleRadius, circleRadius*2, circleRadius*2));
 
     //Just for debugging
@@ -77,50 +80,226 @@ int CellCounter::countColonies(QPoint circleCenter, int circleRadius, QPoint pix
     imwrite("imgRoi.jpg", imgRoi);
     qDebug() << "Saved imgRoi to: imgRoi.jpg";
 
-    //Maybe set ROi before tor educe img size
-    // cv::Mat roi( img, cv::Rect( center.x-radius, center.y-radius, radius*2, radius*2 ) );
+    //int edgeThresh = 1;
+    int cannyThreshold = 100; //no real differences between threshold values, because of just two colors (black and white)
+    int ratio = 3;
+    int kernelSize = 3;
+
+    cv::Mat cannyOutput;
+
+    //Reduce noise, not necessary as we have only two colors
+    //cv::blur(imgRoi, detectedEdges, cannyThreshold, )
+
+    //Detect edges using canny
+    imgRoi.copyTo(cannyOutput);
+    cv::Canny(cannyOutput, cannyOutput, cannyThreshold, cannyThreshold*ratio, kernelSize);
+
+    //Just for debuging
+    imwrite("cannyOutput.jpg", cannyOutput);
+    qDebug() << "Saved cannyOutput to: cannyOutut.jpg";
+
+    cv::findContours(cannyOutput, this->contours, this->hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+    //cv::Mat cannyDrawing = cv::Mat::zeros(cannyOutput.size(), CV_8UC3);
+
+    this->analyseBlobs(imgRoi);
 
     /*
-    //Threshold to Binary Inverted to get white blobs
-    //And change to user defined threshold value
-    cv::Mat imgProcessed;
-    cv::threshold(imgGray, imgProcessed, thresholdValue, 255, thresholdType); // Let the user change between Binary and Binary Inverted
+    int numberOfContours;
+    cv::Scalar color = cv::Scalar(255, 0, 0);
 
-    int currentPoints = 0; //number of found colonies
-    int sum = 0;
-    for(int i = 0; i<10000; i++) {
-        sum *= i;
+    for(numberOfContours = 0; numberOfContours < contours.size(); numberOfContours++) {
+        cv::drawContours(cannyDrawing, contours, numberOfContours, color, 2, 8, hierarchy, 0, cv::Point());
     }
-
-    int maxY = imgProcessed.rows;
-    int maxX = imgProcessed.cols;
-
-    //Just allow a max number of points
-    //Improve code -> use smaller picture let user choose
-
-    for(int y=0; y<maxY; y++) {
-        qDebug("New row!");
-        for(int x=0; x<maxX; x++) {
-            qDebug("X: %d\tY: %d", x, y);
-            int pixelColor = imgProcessed.at<uchar>(cv::Point(x, y));
-            if( pixelColor == 255 ) { //it's white
-                cv::Rect rect;
-                //Fill the white blob/colony
-                cv::floodFill(imgProcessed, cv::Point(x,y), CV_RGB(255,0,0), &rect, cv::Scalar(0), cv::Scalar(0), 4);
-                currentPoints++;
-                    //check colony if good add to vector of points and increase currentPoints
-            }//color-if
-        }//x-for
-    }//y-for
-
-    //Just for simplicity for testing
-    imgQ = QImage((uchar*) imgProcessed.data, imgProcessed.cols, imgProcessed.rows, imgProcessed.step, QImage::Format_Indexed8);
-    qDebug("%d", currentPoints);
-    return currentPoints;
+    qDebug() << "Contours found: " << numberOfContours;
+    //Just for debuging
+    imwrite("cannyDrawing.jpg", cannyDrawing);
+    qDebug() << "Saved cannyDrawing to: cannyDrawing.jpg";
     */
+
+    /*
+    int count = 0;
+    int maxRows = imgRoi.rows;
+    int maxCols = imgRoi.cols;
+    uchar intensity = 0;
+
+    for(int i=0; i<maxRows; i++) {
+        uchar *pixel= imgRoi.ptr<uchar>(i); //point to first pixel in row
+        for(int j=0; j<maxCols; j++) {
+            intensity = pixel[j];
+            if( intensity == 255 ) { //It's white
+                cv::Rect rect;
+                cv::floodFill(imgRoi, cv::Point(j, i), cv::Scalar(count), &rect, 0, 0, 4);
+                qDebug() << "width: " << rect.width <<" height: " << rect.height;
+                count ++;
+            }//End if
+        }//End for
+    }//End for i
+    */
+
+    //qDebug() << count;
+
+    //imwrite("imgRoi-FloodFill.jpg", imgRoi);
+    //qDebug() << "Saved imgRoi to: imgRoi-FloodFill.jpg";
 
     //maybe emit signal when finished to update ui
     //connect(&watcher, SIGNAL(finished()), &myObject, SLOT(handleFinished()));
+
+    return 0;
+}
+
+void CellCounter::analyseBlobs(cv::Mat imgRoi)
+{
+    cv::Mat imgRoiColor;
+    cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2RGB);
+
+    this->foundColonies = 0; //reset
+
+    for(std::vector<cv::Point> contour: this->contours) {
+        //mean Point
+        cv::Point sumPoint = std::accumulate(contour.begin(), contour.end(), cv::Point(0, 0));
+        cv::Point meanPoint = sumPoint * (1.0 / contour.size());
+        //calculate the mean radius
+        unsigned int iCounter = 0;
+        float meanRadius = 0;
+        for(iCounter=0; iCounter < contour.size(); iCounter++) {
+            float x = (float) contour.at(iCounter).x;
+            float y = (float) contour.at(iCounter).y;
+            meanRadius = (float) sqrt(std::abs(x-meanPoint.x)+std::abs(y-meanPoint.y));
+        }
+        float circleArea = (float) M_PI * meanRadius * meanRadius;
+
+        int cSize = contour.size();
+        if(cSize < this->minContourSize) { //should be at least a rectangle I think, means c_size should be at least 4 (default value)
+            continue; //next one, not enough edges
+        }
+
+        //Get rid of multiple ones on almost the same spot, reduce number of colonies counted multiple times
+
+        //First consider if the blob is made up of more than one colony
+        //Needs improvements!
+        int k = 0;
+        for(float i=this->maxRadius; i>= this->minRadius; i -= 0.1) {
+            float iCircleArea = (float) M_PI * i * i;
+            //double area = cv::contourArea(contour); //not precise enough
+
+            int n = (int) circleArea / iCircleArea; //round it
+            if(n > 0) {
+                k = n;
+                break;
+            }
+        }
+
+        if(k == 0) {
+            continue;
+        }
+
+        else if(k == 1) {
+            if( !(this->isCircle(contour)) ) {
+            continue;
+            }
+            //Accept found colony
+            acceptedContours.push_back(contour);
+            //Paint it
+            cv::circle(imgRoiColor, meanPoint, this->drawCircleSize, cv::Scalar(255, 0, 0), 1);
+            this->foundColonies++;
+        }
+
+        else if(k > 1) {
+            qDebug() << "Splitting, k = " << k;
+            std::vector<std::vector<cv::Point>> tempColonies = this->seperateColonies(contour, k);
+            for(std::vector<cv::Point> tempColony: tempColonies) {
+                if(!(this->isCircle(tempColony))) {
+                    continue;
+                }
+                acceptedContours.push_back(tempColony);
+                cv::Point sum = std::accumulate(tempColony.begin(), tempColony.end(), cv::Point(0, 0));
+                cv::Point mean = sum * (1.0 / tempColony.size());
+                cv::circle(imgRoiColor, mean, this->drawCircleSize, cv::Scalar(255, 0, 0), 1);
+            }
+        }
+
+    }
+
+    qDebug() << "Colonies found: " << this->foundColonies;
+    cv::imwrite("imgRoiColor.jpg", imgRoiColor);
+}
+
+int CellCounter::isCircle(std::vector<cv::Point> &data)
+{
+    cv::Mat dataBuffer = cv::Mat(data.size(), 2, CV_32F);
+    for(int i = 0; i < dataBuffer.rows; i++) {
+        dataBuffer.at<float>(i, 0) = data[i].x;
+        dataBuffer.at<float>(i, 1) = data[i].y;
+    }
+
+    cv::PCA pcaAnalysis(dataBuffer, cv::Mat(), CV_PCA_DATA_AS_ROW);
+
+    //Calculate the radius, it's the hypothesis of the triangle
+    float ratio = sqrt(pcaAnalysis.eigenvalues.at<float>(0)) / sqrt(pcaAnalysis.eigenvalues.at<float>(1));
+
+    if(ratio <= this->minCircleRatio || ratio > this->maxCircleRatio) {
+        return 0;
+    }
+
+    return 1;
+}
+
+std::vector<std::vector<cv::Point>> CellCounter::seperateColonies(std::vector<cv::Point> &data, int k)
+{
+    //Set k-means criteria
+    cv::TermCriteria kCriteria = cv::TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 1000, 0.1);
+
+    cv::Mat dataBuffer = cv::Mat(data.size(), 2, CV_32F);
+    for(int i=0; i <dataBuffer.rows; i++) {
+        dataBuffer.at<float>(i, 0) = data[i].x;
+        dataBuffer.at<float>(i, 1) = data[i].y;
+    }
+
+    cv::Mat centers, labels;
+    cv::kmeans(dataBuffer, k, labels, kCriteria, 1, cv::KMEANS_RANDOM_CENTERS, centers);
+
+    //Create the vector<vector<Point>>
+    std::vector<std::vector<cv::Point>> returnVector;
+    for(int i =0; i < k; i++) {
+        std::vector<cv::Point> sub; //stores one of the centers
+
+        for(int j=0; j<labels.rows; j++) {
+            if(labels.at<int>(j, 0) == i) {
+                sub.push_back(data[j]);
+            }
+        }
+
+        returnVector.push_back(sub);
+    }
+
+    return returnVector;
+}
+
+
+void CellCounter::set_contourSize(int newSize)
+{
+    this->minContourSize = newSize;
+}
+
+void CellCounter::set_minRadius(double newRadius)
+{
+    this->minRadius = (float) newRadius;
+}
+
+void CellCounter::set_maxRadius(double newRadius)
+{
+    this->maxRadius = (float) newRadius;
+}
+
+void CellCounter::set_minCircleRatio(double newRatio)
+{
+    this->minCircleRatio = (float) newRatio;
+}
+
+void CellCounter::set_maxCircleRatio(double newRatio)
+{
+    this->maxCircleRatio = (float) newRatio;
 }
 
 void CellCounter::set_imgPath(QString fileName)
@@ -131,11 +310,6 @@ void CellCounter::set_imgPath(QString fileName)
 QString CellCounter::return_imgPath(void)
 {
     return this->imgPath;
-}
-
-QImage CellCounter::return_imgQOriginal(void)
-{
-    return this->imgQOriginal;
 }
 
 QImage CellCounter::return_imgQ(void)

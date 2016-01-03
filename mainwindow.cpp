@@ -9,7 +9,6 @@ MainWindow::MainWindow(QWidget *parent) :
     qApp->installEventFilter(this);
 
     setMouseTracking(true);
-    //ui->imgLabel->setMouseTracking(true);
 }
 
 MainWindow::~MainWindow()
@@ -66,7 +65,6 @@ void MainWindow::updateImgLabel()
 
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
-   //QMainWindow::resizeEvent(event);
    updateImgLabel();
 
    qDebug() << "Resized";
@@ -90,16 +88,11 @@ void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
 
 void MainWindow::on_countCellsButton_clicked()
 {
-    // Call fill flood loop in Cells class
-    // Update label
-    //ui->countCellsLabel->setText("str");
     //Start new thread to run countCells function, otherwise GUI freezes
     QFutureWatcher<int> watcher;
     watcher.setFuture(QtConcurrent::run(&Cells, &CellCounter::countColonies, this->circleCenter, this->circleRadius, this->pixmapSize));
-    //QFuture<int> future = QtConcurrent::run(&Cells, &CellCounter::countColonies);
 
-    //qDebug() << future.result();
-
+    return;
 }
 
 void MainWindow::on_chooseCircleButton_clicked()
@@ -130,10 +123,9 @@ void MainWindow::wheelEvent(QWheelEvent *event)
         }
 
         this->drawCircle = true;
+        qDebug() << "New CircleRadius: " << this->circleRadius;
         updateImgLabel();
     }
-
-    qDebug() << "New CircleRadius: " << this->circleRadius;
 }
 
 //Could not get it to work, it needed a mouse click to trigger, although mouse tracking was set to true
@@ -172,4 +164,30 @@ void MainWindow::updateCircle()
 {
     this->updateCircleAllowed = false;
     updateImgLabel();
+}
+
+void MainWindow::on_minContourSizeSpin_valueChanged(int newSize)
+{
+    Cells.set_contourSize(newSize);
+}
+
+void MainWindow::on_minRadiusSpin_valueChanged(double newValue)
+{
+    Cells.set_minRadius((float) newValue);
+}
+
+void MainWindow::on_maxRadiusSpin_valueChanged(double newValue)
+{
+    Cells.set_maxRadius((float) newValue);
+}
+
+
+void MainWindow::on_minPcaRatioSpin_valueChanged(double newValue)
+{
+    Cells.set_minCircleRatio((float) newValue);
+}
+
+void MainWindow::on_maxPcaRatioSpin_valueChanged(double newValue)
+{
+    Cells.set_maxCircleRatio((float) newValue);
 }
