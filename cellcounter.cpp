@@ -142,9 +142,6 @@ int CellCounter::countColonies(QPoint circleCenter, int circleRadius, QPoint pix
     //imwrite("imgRoi-FloodFill.jpg", imgRoi);
     //qDebug() << "Saved imgRoi to: imgRoi-FloodFill.jpg";
 
-    //maybe emit signal when finished to update ui
-    //connect(&watcher, SIGNAL(finished()), &myObject, SLOT(handleFinished()));
-
     return 0;
 }
 
@@ -220,6 +217,9 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
         }
 
     }
+
+    imgRoiColor.copyTo(this->imgColor);
+    cv::cvtColor(this->imgColor, this->imgColor, CV_RGB2BGR);//Qt uses RGB and opencv BGR
 
     qDebug() << "Colonies found: " << this->foundColonies;
     cv::imwrite("imgRoiColor.jpg", imgRoiColor);
@@ -315,4 +315,16 @@ QString CellCounter::return_imgPath(void)
 QImage CellCounter::return_imgQ(void)
 {
     return this->imgQ;
+}
+
+QImage CellCounter::return_imgQColored(void)
+{
+    //cv::cvtColor(this->imgColor, this->imgColor, CV_RGB2BGR);//Qt uses RGB and opencv BGR but conversion was already done
+    this->imgQColor = QImage((uchar*) imgColor.data, imgColor.cols, imgColor.rows, imgColor.step, QImage::Format_RGB888);
+    return this->imgQColor;
+}
+
+int CellCounter::return_numberOfColonies(void)
+{
+    return this->foundColonies;
 }

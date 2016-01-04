@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>702</width>
-    <height>612</height>
+    <height>648</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -87,7 +87,7 @@
     <item row="16" column="1">
      <widget class="QLabel" name="countCellsLabel">
       <property name="text">
-       <string>0</string>
+       <string>Colonies found: 0</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>

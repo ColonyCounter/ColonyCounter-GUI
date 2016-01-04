@@ -50,6 +50,7 @@ private slots:
     void on_thresholdValueSpin_valueChanged(int);
     void on_thresholdTypeBox_currentIndexChanged(int);
     void on_countCellsButton_clicked();
+    void finishedCounting();
 
     void on_chooseCircleButton_clicked();
     void updateCircle();
@@ -70,10 +71,12 @@ private:
     Ui::MainWindow *ui;
     QGraphicsScene *scene = new QGraphicsScene(this);
     QPixmap pixmapImg;
+    QFutureWatcher<int> *watcher;
     //Need to get rid of these three bool variables, that allows to draw circle
     bool drawCircle = false; //gets false in updateImgLabel
     bool drawCircleAllowed = false; //gets false when button to accept circle was pressed
     bool updateCircleAllowed = false; //gets false in doUpdateCircle
+    bool showColored = false;
     QPoint pixmapSize;
     QPoint mouseCurrentPos;
     QPoint circleCenter;

@@ -24,8 +24,8 @@
 class CellCounter
 {
 private:
-    cv::Mat imgOriginal, imgGray, img, imgPetriDish; //img is the one that changes
-    QImage imgQ; //Saved for qt so we can just convert to Pixmap
+    cv::Mat imgOriginal, imgGray, img, imgColor, imgPetriDish; //img is the one that changes
+    QImage imgQ, imgQColor; //Saved for qt so we can just convert to Pixmap
     QString imgPath = "";
     int thresholdValue = 1;
     int thresholdType = BINARY_INVERTED;
@@ -66,6 +66,8 @@ public:
     QString return_imgPath(void);
     QImage return_imgQOriginal(void);
     QImage return_imgQ(void);
+    QImage return_imgQColored(void);
+    int return_numberOfColonies(void);
 };
 
 #endif // CELLCOUNTER_H

@@ -34,7 +34,12 @@ void MainWindow::on_loadImageButton_clicked()
 void MainWindow::updateImgLabel()
 {
     //Convert imgQ to Pixmap and display in label
-    pixmapImg = QPixmap::fromImage(Cells.return_imgQ(), 0);
+    if(!this->showColored) {
+        this->pixmapImg = QPixmap::fromImage(Cells.return_imgQ(), 0);
+    }
+    else if(this->showColored) {
+        this->pixmapImg = QPixmap::fromImage(Cells.return_imgQColored(), 0);
+    }
 
     int w  = ui->imgLabel->width();
     int h  = ui->imgLabel->height();
@@ -73,6 +78,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 void MainWindow::on_thresholdValueSpin_valueChanged(int thresholdValue)
 {
     Cells.thresholdValueChanged(thresholdValue);
+    this->showColored = false;
     updateImgLabel();
 
     return;
@@ -81,6 +87,7 @@ void MainWindow::on_thresholdValueSpin_valueChanged(int thresholdValue)
 void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
 {
     Cells.thresholdTypeChanged(index);
+    this->showColored = false;
     updateImgLabel();
 
     return;
@@ -89,8 +96,9 @@ void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
 void MainWindow::on_countCellsButton_clicked()
 {
     //Start new thread to run countCells function, otherwise GUI freezes
-    QFutureWatcher<int> watcher;
-    watcher.setFuture(QtConcurrent::run(&Cells, &CellCounter::countColonies, this->circleCenter, this->circleRadius, this->pixmapSize));
+    watcher = new QFutureWatcher<int>;
+    connect(watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
+    watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColonies, this->circleCenter, this->circleRadius, this->pixmapSize));
 
     return;
 }
@@ -98,6 +106,21 @@ void MainWindow::on_countCellsButton_clicked()
 void MainWindow::on_chooseCircleButton_clicked()
 {
     this->drawCircleAllowed = true;
+    this->showColored = false;
+}
+
+void MainWindow::finishedCounting()
+{
+    qDebug() << "Finihed counting";
+    int colonies = Cells.return_numberOfColonies();
+    ui->countCellsLabel->setText(QString("Found colonies: %1").arg(colonies));
+    this->showColored = true;
+    this->updateImgLabel();
+
+    //Call Destructor of QFutureWatcher
+    this->watcher->~QFutureWatcher();
+
+    return;
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
