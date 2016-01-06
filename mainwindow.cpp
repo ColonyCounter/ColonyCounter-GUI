@@ -134,14 +134,13 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
+    QPoint wheelDegrees = event->angleDelta()/8;
     if( this->drawCircleAllowed ) {
 
-        QPoint wheelDegrees = event->angleDelta()/8;
-
-        if( wheelDegrees.y() > 0 ) {
+        if( wheelDegrees.y() > 0) {
             this->circleRadius += 10;
         }
-        else if( wheelDegrees.y() < 0 ) {
+        else if( wheelDegrees.y() < 0 && this->circleRadius > 10) {
             this->circleRadius -= 10;
         }
 
