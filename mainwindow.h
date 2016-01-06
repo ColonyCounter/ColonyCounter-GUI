@@ -21,6 +21,8 @@
 
 #include "cellcounter.h"
 
+#define E_COLI "E. coli"
+
 extern CellCounter Cells;
 
 namespace Ui {
@@ -61,6 +63,10 @@ private slots:
     void on_minRadiusSpin_valueChanged(double arg1);
     void on_maxRadiusSpin_valueChanged(double arg1);
 
+    void on_actionE_coli_triggered();
+
+    void on_actionStandard_module_triggered();
+
 protected:
 
 private:
@@ -68,12 +74,14 @@ private:
     QGraphicsScene *scene = new QGraphicsScene(this);
     QPixmap pixmapImg;
     QFutureWatcher<int> *watcher;
+    bool useCascadeClassifier = false;
+    QString cascadeClassifierType = "E. coli"; //standard organism
     //Need to get rid of these three bool variables, that allows to draw circle
     bool drawCircle = false; //gets false in updateImgLabel
     bool drawCircleAllowed = false; //gets false when button to accept circle was pressed
     bool updateCircleAllowed = false; //gets false in doUpdateCircle
     bool showColored = false;
-    QPoint pixmapSize;
+    QSize pixmapSize;
     QPoint mouseCurrentPos;
     QPoint circleCenter;
     int circleRadius = 150;

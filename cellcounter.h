@@ -24,13 +24,16 @@
 class CellCounter
 {
 private:
-    cv::Mat imgOriginal, imgGray, img, imgColor, imgPetriDish; //img is the one that changes
+    cv::Mat imgOriginal, imgGray, img, imgColor;
     QImage imgQ, imgQColor; //Saved for qt so we can just convert to Pixmap
     QString imgPath = "";
+    int foundColonies = 0;
+    cv::Point circleCenterPoint;
+    int circleRadius;
+
+    //User defined values
     int thresholdValue = 1;
     int thresholdType = BINARY_INVERTED;
-    int maxPoints = 250;
-    int foundColonies = 0;
     float minContourSize = 4.0;
     float minRadius = 0.1;
     float maxRadius = 10;
@@ -52,8 +55,10 @@ public:
     int loadImage(QString);
     void thresholdValueChanged(int);
     void thresholdTypeChanged(int);
-    int countColonies(QPoint, int, QPoint);
+    int countColoniesStandard(QPoint, int, QSize);
     void analyseBlobs(cv::Mat);
+    void countColoniesCascade(QPoint, int, QSize, QString);
+    void calculateCircleCenterAndRadius(QPoint, int, QSize);
     int isCircle(std::vector<cv::Point> &);
     std::vector<std::vector<cv::Point>> seperateColonies(std::vector<cv::Point> &, int);
 

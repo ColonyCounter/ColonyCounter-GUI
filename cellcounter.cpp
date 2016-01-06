@@ -43,19 +43,11 @@ void CellCounter::thresholdTypeChanged(int thresholdTypeArg)
     return;
 }
 
-int CellCounter::countColonies(QPoint circleCenter, int circleRadius, QPoint pixmapSize)
+int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize pixmapSize)
 {
     qDebug() << "Starting counting colonies on: " << this->return_imgPath();
 
-    //Recalculate factor for radius and circleCenter
-    float factorWidth = (float) this->img.cols / pixmapSize.x();
-    float factorHeight = (float) this->img.rows / pixmapSize.y();
-
-    //convert QPoint to OpenCV point
-    cv::Point2i circleCenterPoint;
-    circleCenterPoint.x = circleCenter.x() * factorWidth;
-    circleCenterPoint.y = circleCenter.y() * factorHeight;
-    circleRadius *= factorWidth;//Works right know as KeepAspectRatio is true
+    this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize);
 
     //Change img to BINARY_INVERTED
     if(this->thresholdType != BINARY_INVERTED) {
@@ -64,19 +56,18 @@ int CellCounter::countColonies(QPoint circleCenter, int circleRadius, QPoint pix
 
     //Create mask of petri dish
     cv::Mat mask = cv::Mat::zeros(this->img.rows, this->img.cols, CV_8UC1);
-    cv::circle(mask, circleCenterPoint, circleRadius, cv::Scalar(255, 255, 255), -1); //-1 means circle is filled, lineType=8 and shift= 0 << standard values
-    this->img.copyTo(this->imgPetriDish, mask);
+    cv::circle(mask, this->circleCenterPoint, this->circleRadius, cv::Scalar(255, 255, 255), -1); //-1 means circle is filled, lineType=8 and shift= 0 << standard values
+    cv::Mat imgRoiTemp;
+    this->img.copyTo(imgRoiTemp, mask);
 
     //Create Region of Interest, reduzed size
-    cv::Mat imgRoi(this->imgPetriDish, cv::Rect(circleCenterPoint.x-circleRadius, circleCenterPoint.y-circleRadius, circleRadius*2, circleRadius*2));
+    cv::Mat imgRoi(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
 
     //Just for debugging
     imwrite("img.jpg", this->img);
     qDebug() << "Saved img to: img.jpg";
     imwrite("mask.jpg", mask);
     qDebug() << "Saved mask to: img/mask.jpg";
-    imwrite("imgPetriDish.jpg", this->imgPetriDish);
-    qDebug() << "Saved imgPetriDish to: imgPetriDish.jpg";
     imwrite("imgRoi.jpg", imgRoi);
     qDebug() << "Saved imgRoi to: imgRoi.jpg";
 
@@ -223,6 +214,26 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
 
     qDebug() << "Colonies found: " << this->foundColonies;
     cv::imwrite("imgRoiColor.jpg", imgRoiColor);
+}
+
+void CellCounter::calculateCircleCenterAndRadius(QPoint circleCenter, int circleRad, QSize pixmapSize)
+{
+
+    //Recalculate factor for radius and circleCenter
+    float factorWidth = (float) this->img.cols / pixmapSize.width();
+    float factorHeight = (float) this->img.rows / pixmapSize.height();
+
+    //convert QPoint to OpenCV point
+    this->circleCenterPoint.x = circleCenter.x() * factorWidth;
+    this->circleCenterPoint.y = circleCenter.y() * factorHeight;
+
+    this->circleRadius = circleRad;
+    if(factorWidth > factorHeight)
+        this->circleRadius *= factorWidth;
+    else
+        this->circleRadius *= factorWidth;
+
+    return;
 }
 
 int CellCounter::isCircle(std::vector<cv::Point> &data)

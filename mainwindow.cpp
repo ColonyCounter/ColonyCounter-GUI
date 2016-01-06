@@ -46,8 +46,8 @@ void MainWindow::updateImgLabel()
 
     pixmapImg = pixmapImg.scaled(w,h,Qt::KeepAspectRatio);
     //Pixmap width and height different to ui->imgLabel's
-    this->pixmapSize.setX(pixmapImg.width());
-    this->pixmapSize.setY(pixmapImg.height());
+    this->pixmapSize.setWidth(pixmapImg.width());
+    this->pixmapSize.setHeight(pixmapImg.height());
 
 
     if( this->drawCircle ) {
@@ -95,11 +95,21 @@ void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
 
 void MainWindow::on_countCellsButton_clicked()
 {
-    //Start new thread to run countCells function, otherwise GUI freezes
-    watcher = new QFutureWatcher<int>;
-    connect(watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
-    watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColonies, this->circleCenter, this->circleRadius, this->pixmapSize));
-
+    //Check which module/function for colony counting should be used
+    if( this->useCascadeClassifier == true ) {
+        qDebug() << "Use cascade classifier for counting.";
+        ui->moduleUsedLabel->setText("Using: Cascade");
+        this->update();
+    }
+    else {
+        qDebug() << "Use standard module for counting.";
+        ui->moduleUsedLabel->setText("Using: Standard");
+        this->update();
+        //Start new thread to run countCells function, otherwise GUI freezes
+        watcher = new QFutureWatcher<int>;
+        connect(watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
+        watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize));
+    }
     return;
 }
 
@@ -212,4 +222,15 @@ void MainWindow::on_minPcaRatioSpin_valueChanged(double newValue)
 void MainWindow::on_maxPcaRatioSpin_valueChanged(double newValue)
 {
     Cells.set_maxCircleRatio((float) newValue);
+}
+
+void MainWindow::on_actionE_coli_triggered()
+{
+    this->useCascadeClassifier = true;
+    this->cascadeClassifierType = E_COLI;
+}
+
+void MainWindow::on_actionStandard_module_triggered()
+{
+    this->useCascadeClassifier = false;
 }
