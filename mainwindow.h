@@ -46,7 +46,7 @@ signals:
     void fileNameChanged(QString);
 
 private slots:
-    void on_loadImageButton_clicked();
+    void on_actionLoad_Image_triggered();
     void on_thresholdValueSpin_valueChanged(int);
     void on_thresholdTypeBox_currentIndexChanged(int);
     void on_countCellsButton_clicked();
@@ -56,13 +56,9 @@ private slots:
     void updateCircle();
 
     void on_minContourSizeSpin_valueChanged(int);
-
     void on_minPcaRatioSpin_valueChanged(double);
-
     void on_maxPcaRatioSpin_valueChanged(double);
-
     void on_minRadiusSpin_valueChanged(double arg1);
-
     void on_maxRadiusSpin_valueChanged(double arg1);
 
 protected:

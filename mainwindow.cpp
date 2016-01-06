@@ -16,7 +16,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_loadImageButton_clicked()
+void MainWindow::on_actionLoad_Image_triggered()
 {
     QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open...", QDir::homePath());
     if( !fileName.isEmpty() ) {
