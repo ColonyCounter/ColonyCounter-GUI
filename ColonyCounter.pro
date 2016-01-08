@@ -16,14 +16,15 @@ CONFIG += c++11
 PKGCONFIG += opencv
 
 INCLUDEPATH += /usr/local/include/opencv
-LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_imgproc
+LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lopencv_objdetect
 
 SOURCES += main.cpp\
         mainwindow.cpp \
     cellcounter.cpp
 
 HEADERS  += mainwindow.h \
-    cellcounter.h
+    cellcounter.h \
+    defines.h
 
 FORMS    += mainwindow.ui
 

@@ -11,6 +11,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "defines.h"
+
 #define BINARY 0
 #define BINARY_INVERTED 1
 #define TRUNCATE 2
@@ -42,11 +44,15 @@ private:
     int drawCircleSize = 5;
     float minCircleRatio = 1.0;
     float maxCircleRatio = 5.0;
+    float scaleFactorCascade = 1.1;
+    int minNeighborsCascade = 2;
 
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
     std::vector<std::vector<cv::Point>> acceptedContours;
     std::vector<cv::Point> points;
+
+    std::vector<cv::Rect> singleColonies;
 
 protected:
 
@@ -57,7 +63,8 @@ public:
     void thresholdTypeChanged(int);
     int countColoniesStandard(QPoint, int, QSize);
     void analyseBlobs(cv::Mat);
-    void countColoniesCascade(QPoint, int, QSize, QString);
+    int countColoniesCascade(QPoint, int, QSize, QString);
+    int analyseColoniesCascade(cv::CascadeClassifier);
     void calculateCircleCenterAndRadius(QPoint, int, QSize);
     int isCircle(std::vector<cv::Point> &);
     std::vector<std::vector<cv::Point>> seperateColonies(std::vector<cv::Point> &, int);

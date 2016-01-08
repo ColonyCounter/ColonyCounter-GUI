@@ -26,6 +26,8 @@ void MainWindow::on_actionLoad_Image_triggered()
         Cells.thresholdTypeChanged(1);
         Cells.thresholdValueChanged(70);
 
+        this->showColored = false;
+        ui->countCellsLabel->setText("Found colonies: 0");
         updateImgLabel();
     }
     return;
@@ -98,18 +100,22 @@ void MainWindow::on_countCellsButton_clicked()
     //Check which module/function for colony counting should be used
     if( this->useCascadeClassifier == true ) {
         qDebug() << "Use cascade classifier for counting.";
-        ui->moduleUsedLabel->setText("Using: Cascade");
         this->update();
+        //Start new thread to run countCells function, otherwise GUI freezes
+        this->watcher = new QFutureWatcher<int>;
+        connect(this->watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
+        this->watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColoniesCascade, this->circleCenter, this->circleRadius, this->pixmapSize, this->cascadeClassifierType));
     }
     else {
         qDebug() << "Use standard module for counting.";
-        ui->moduleUsedLabel->setText("Using: Standard");
         this->update();
         //Start new thread to run countCells function, otherwise GUI freezes
-        watcher = new QFutureWatcher<int>;
-        connect(watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
-        watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize));
+        this->watcher = new QFutureWatcher<int>;
+        connect(this->watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
+        this->watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize));
     }
+    //Add check: if return value is < 0 -> there was an error: check qDebug() and display Error message
+
     return;
 }
 
@@ -117,11 +123,13 @@ void MainWindow::on_chooseCircleButton_clicked()
 {
     this->drawCircleAllowed = true;
     this->showColored = false;
+    ui->countCellsLabel->setText("Found colonies: 0");
+    this->update();
 }
 
 void MainWindow::finishedCounting()
 {
-    qDebug() << "Finihed counting";
+    qDebug() << "Finished counting";
     int colonies = Cells.return_numberOfColonies();
     ui->countCellsLabel->setText(QString("Found colonies: %1").arg(colonies));
     this->showColored = true;
@@ -228,9 +236,11 @@ void MainWindow::on_actionE_coli_triggered()
 {
     this->useCascadeClassifier = true;
     this->cascadeClassifierType = E_COLI;
+    ui->moduleUsedLabel->setText(E_COLI);
 }
 
 void MainWindow::on_actionStandard_module_triggered()
 {
     this->useCascadeClassifier = false;
+    ui->moduleUsedLabel->setText("Standard");
 }

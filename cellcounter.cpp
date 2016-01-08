@@ -216,6 +216,62 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
     cv::imwrite("imgRoiColor.jpg", imgRoiColor);
 }
 
+int CellCounter::countColoniesCascade(QPoint circleCenter, int circleRad, QSize pixmapSize, QString organism)
+{
+    qDebug() << "Using cascade";
+    qDebug() << "Organism" << organism;
+    qDebug() << "Starting counting colonies on: " << this->return_imgPath();
+
+    this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize);
+
+    //Load the right .xml files based on user choice
+    std::string singleColonyXML;
+    if( organism.compare(E_COLI) == 0 ) {
+        singleColonyXML = E_COLI_XML;
+    }
+
+    cv::CascadeClassifier singleColonyCascade;
+    if( !singleColonyCascade.load(singleColonyXML) ) {
+        qCritical() << "Could not load .xml file(s).";
+        return -1;
+    }
+
+    int foundColonies = 0;
+    foundColonies += this->analyseColoniesCascade(singleColonyCascade);
+
+    return foundColonies;
+}
+
+int CellCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCascade)
+{
+    int foundColonies = 0;
+    // Reset the vectors to start again
+    this->singleColonies.clear();
+
+    cv::Mat imgGray, imgResult;
+    this->img.copyTo(imgResult);
+
+    cv::cvtColor(this->img, imgGray, cv::COLOR_BGR2GRAY);
+    cv::equalizeHist(imgGray, imgGray);
+
+    //Detect single colonies
+    //LBP classifer used right know, maybe change to Haar
+    singleColonyCascade.detectMultiScale(imgGray, this->singleColonies, this->scaleFactorCascade, this->minNeighborsCascade,
+                                  0, cv::Size(this->minRadius, this->minRadius), cv::Size(this->maxRadius, this->maxRadius));
+
+    for(cv::Rect colony: this->singleColonies) {
+        cv::Point center(colony.x + colony.width/2, colony.y + colony.height/2);
+        cv::circle(imgResult, center, (colony.width+colony.height)/4, cv::Scalar(255, 0, 0), 1);
+    }
+    foundColonies += this->singleColonies.size();
+
+    //Add the detection of more than one colony
+
+    imgResult.copyTo(this->imgColor);
+
+    return foundColonies;
+}
+
 void CellCounter::calculateCircleCenterAndRadius(QPoint circleCenter, int circleRad, QSize pixmapSize)
 {
 

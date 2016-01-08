@@ -20,8 +20,7 @@
 #include <QDebug>
 
 #include "cellcounter.h"
-
-#define E_COLI "E. coli"
+#include "defines.h"
 
 extern CellCounter Cells;
 
