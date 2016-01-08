@@ -132,6 +132,8 @@ int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize
 
     //imwrite("imgRoi-FloodFill.jpg", imgRoi);
     //qDebug() << "Saved imgRoi to: imgRoi-FloodFill.jpg";
+    imwrite("imgOccupied.jpg", this->imgOccupied);
+    qDebug() << "Saved imgOccupied to: imgOccupied.jpg";
 
     return 0;
 }
@@ -142,27 +144,34 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
     cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2RGB);
 
     this->foundColonies = 0; //reset
+    this->imgOccupied = cv::Mat(imgRoi.rows, imgRoi.cols, CV_8UC1, cv::Scalar(0, 0, 0));
 
     for(std::vector<cv::Point> contour: this->contours) {
         //mean Point
         cv::Point sumPoint = std::accumulate(contour.begin(), contour.end(), cv::Point(0, 0));
         cv::Point meanPoint = sumPoint * (1.0 / contour.size());
+
         //calculate the mean radius
         unsigned int iCounter = 0;
         float meanRadius = 0;
+        float x = 0;
+        float y = 0;
         for(iCounter=0; iCounter < contour.size(); iCounter++) {
-            float x = (float) contour.at(iCounter).x;
-            float y = (float) contour.at(iCounter).y;
-            meanRadius = (float) sqrt(std::abs(x-meanPoint.x)+std::abs(y-meanPoint.y));
+            x = (float) contour.at(iCounter).x;
+            y = (float) contour.at(iCounter).y;
+            //use vector style to calculate distance between meanPoint and current processed point
+            float distanceX = (float) (x-meanPoint.x)*(x-meanPoint.x);
+            float distanceY = (float) (y-meanPoint.y)*(y-meanPoint.y);
+            meanRadius += (float) sqrt(distanceX+distanceY);
         }
+
+        meanRadius = meanRadius / contour.size(); //get the mean of it
         float circleArea = (float) M_PI * meanRadius * meanRadius;
 
         int cSize = contour.size();
         if(cSize < this->minContourSize) { //should be at least a rectangle I think, means c_size should be at least 4 (default value)
             continue; //next one, not enough edges
         }
-
-        //Get rid of multiple ones on almost the same spot, reduce number of colonies counted multiple times
 
         //First consider if the blob is made up of more than one colony
         //Needs improvements!
@@ -183,13 +192,17 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
         }
 
         else if(k == 1) {
-            if( !(this->isCircle(contour)) ) {
-            continue;
+            if( !(this->isCircle(contour)) || (this->minRadius > meanRadius) || (this->maxRadius < meanRadius) ) {
+                continue;
             }
             //Accept found colony
             acceptedContours.push_back(contour);
             //Paint it
-            cv::circle(imgRoiColor, meanPoint, this->drawCircleSize, cv::Scalar(255, 0, 0), 1);
+            cv::circle(imgRoiColor, meanPoint, meanRadius, cv::Scalar(255, 0, 0), 1);
+
+            if( this->isSpaceAlreadyOccupied(meanPoint, meanRadius) ) {
+                continue; //Already, next one
+            }
             this->foundColonies++;
         }
 
@@ -197,13 +210,23 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
             qDebug() << "Splitting, k = " << k;
             std::vector<std::vector<cv::Point>> tempColonies = this->seperateColonies(contour, k);
             for(std::vector<cv::Point> tempColony: tempColonies) {
-                if(!(this->isCircle(tempColony))) {
-                    continue;
-                }
-                acceptedContours.push_back(tempColony);
                 cv::Point sum = std::accumulate(tempColony.begin(), tempColony.end(), cv::Point(0, 0));
                 cv::Point mean = sum * (1.0 / tempColony.size());
-                cv::circle(imgRoiColor, mean, this->drawCircleSize, cv::Scalar(255, 0, 0), 1);
+
+                meanRadius = 0;
+                for(cv::Point pnt: tempColony) {
+                    float distanceX = (float) (x-mean.x)*(x-mean.x);
+                    float distanceY = (float) (y-mean.y)*(y-mean.y);
+                    meanRadius += (float) sqrt(distanceX+distanceY);
+                }
+                meanRadius /= tempColony.size();
+
+                if(!(this->isCircle(tempColony)) || (this->minRadius > meanRadius) || (this->maxRadius < meanRadius)) {
+                    continue;
+                }
+
+                acceptedContours.push_back(tempColony);
+                cv::circle(imgRoiColor, mean, meanRadius, cv::Scalar(255, 0, 0), 1);
             }
         }
 
@@ -214,6 +237,37 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
 
     qDebug() << "Colonies found: " << this->foundColonies;
     cv::imwrite("imgRoiColor.jpg", imgRoiColor);
+
+    return;
+}
+
+bool CellCounter::isSpaceAlreadyOccupied(cv::Point meanPoint, int meanRadius)
+{
+    //check if already a colony is nearby -> probably same colony
+    //check not all pixels, just a few along the radius and different angles
+    std::vector<cv::Point2f> pointsToCheck(8, meanPoint);
+    float rad = (2 * meanRadius)/3;
+    pointsToCheck.at(0).x += rad;
+    pointsToCheck.at(1).x -= rad;
+    pointsToCheck.at(2).y += rad;
+    pointsToCheck.at(3).y += rad;
+    pointsToCheck.at(4).x += rad; pointsToCheck.at(4).y += rad;
+    pointsToCheck.at(5).x += rad; pointsToCheck.at(5).y -= rad;
+    pointsToCheck.at(6).x -= rad; pointsToCheck.at(6).y += rad;
+    pointsToCheck.at(7).x -= rad; pointsToCheck.at(7).y -= rad;
+
+    for(cv::Point2f pnt: pointsToCheck) {
+        if( this->imgOccupied.at<uchar>(pnt.x, pnt.y) == 255 ) {
+            qDebug() << pnt.x << "," << pnt.y << "already found.";
+            return true; //there is already one
+        }
+    }
+
+    //no other colony at same palce, add it to Mat
+    cv::circle(this->imgOccupied, meanPoint, meanRadius, cv::Scalar(255, 255, 255), -1, 8);
+
+    //if not add circle with mean radius to Mat
+    return false;
 }
 
 int CellCounter::countColoniesCascade(QPoint circleCenter, int circleRad, QSize pixmapSize, QString organism)

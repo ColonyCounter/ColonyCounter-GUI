@@ -279,6 +279,7 @@
     </widget>
     <addaction name="actionLoad_Image"/>
     <addaction name="menuChange_module"/>
+    <addaction name="actionUse_Pi_Camera"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
@@ -304,6 +305,11 @@
   <action name="actionE_coli">
    <property name="text">
     <string>E. coli</string>
+   </property>
+  </action>
+  <action name="actionUse_Pi_Camera">
+   <property name="text">
+    <string>Use Pi Camera</string>
    </property>
   </action>
  </widget>

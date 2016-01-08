@@ -26,7 +26,7 @@
 class CellCounter
 {
 private:
-    cv::Mat imgOriginal, imgGray, img, imgColor;
+    cv::Mat imgOriginal, imgGray, img, imgColor, imgOccupied;
     QImage imgQ, imgQColor; //Saved for qt so we can just convert to Pixmap
     QString imgPath = "";
     int foundColonies = 0;
@@ -63,6 +63,7 @@ public:
     void thresholdTypeChanged(int);
     int countColoniesStandard(QPoint, int, QSize);
     void analyseBlobs(cv::Mat);
+    bool isSpaceAlreadyOccupied(cv::Point, int);
     int countColoniesCascade(QPoint, int, QSize, QString);
     int analyseColoniesCascade(cv::CascadeClassifier);
     void calculateCircleCenterAndRadius(QPoint, int, QSize);
