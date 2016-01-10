@@ -53,6 +53,7 @@ void MainWindow::updateImgLabel()
 
 
     if( this->drawCircle ) {
+        //circle center not equal to mouse cursor as pixmap not occupying all of qlabel
         QPainter painter(&(this->pixmapImg));
         QPen circlePen(Qt::red);
         circlePen.setWidth(2);
@@ -97,6 +98,9 @@ void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
 
 void MainWindow::on_countCellsButton_clicked()
 {
+    //Disable add/delete of colonies
+    this->editColonies = false;
+
     //Check which module/function for colony counting should be used
     if( this->useCascadeClassifier == true ) {
         qDebug() << "Use cascade classifier for counting.";
@@ -141,15 +145,6 @@ void MainWindow::finishedCounting()
     return;
 }
 
-void MainWindow::mousePressEvent(QMouseEvent *event)
-{
-    if( this->drawCircleAllowed ) {
-        this->drawCircleAllowed = false;
-    }
-
-    qDebug() << "Mouse pressed down.";
-}
-
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
     QPoint wheelDegrees = event->angleDelta()/8;
@@ -183,8 +178,7 @@ void MainWindow::wheelEvent(QWheelEvent *event)
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-  if (event->type() == QEvent::MouseMove)
-  {
+  if (event->type() == QEvent::MouseMove) {
     QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
     statusBar()->showMessage(QString("Mouse move (%1,%2)").arg(mouseEvent->pos().x()).arg(mouseEvent->pos().y()));
     if( !drawCircle && drawCircleAllowed ) {
@@ -198,6 +192,30 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
   }
 
   return false;
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
+{
+    if( this->drawCircleAllowed && (mouseEvent->buttons() == Qt::LeftButton) ) {
+        this->drawCircleAllowed = false;
+          qDebug() << "Mouse pressed down.";
+    }
+    else if( this->editColonies && (mouseEvent->buttons() == Qt::LeftButton) ) {
+        qDebug() << "Left mouse button pressed" << mouseEvent->pos();
+        qDebug() << ui->imgLabel->pos();
+
+        //Need to recalculate position, as image does not occupy all of qLabel
+        float x = (float) mouseEvent->pos().x() - (ui->imgLabel->pos().x() + ui->imgLabel->width() - this->pixmapSize.width());
+        float y = (float) mouseEvent->pos().y() - (ui->imgLabel->pos().y() + ui->imgLabel->height() - this->pixmapSize.height());
+
+        QPoint calculatedPosition;
+        calculatedPosition.setX((int) x);
+        calculatedPosition.setY((int) y);
+
+        //Image does not occupy all of image label! Recalculate it
+        Cells.addCircle(calculatedPosition, this->pixmapSize);
+        this->updateImgLabel();
+    }
 }
 
 void MainWindow::updateCircle()
@@ -243,4 +261,10 @@ void MainWindow::on_actionStandard_module_triggered()
 {
     this->useCascadeClassifier = false;
     ui->moduleUsedLabel->setText("Standard");
+}
+
+void MainWindow::on_add_deleteColoniesButton_clicked()
+{
+    //Swap it
+    this->editColonies = !(this->editColonies);
 }

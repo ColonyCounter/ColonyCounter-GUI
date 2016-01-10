@@ -47,7 +47,7 @@ int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize
 {
     qDebug() << "Starting counting colonies on: " << this->return_imgPath();
 
-    this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize);
+    this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize, this->img);
 
     //Change img to BINARY_INVERTED
     if(this->thresholdType != BINARY_INVERTED) {
@@ -196,9 +196,9 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
                 continue;
             }
             //Accept found colony
-            acceptedContours.push_back(contour);
+            this->acceptedColonies.push_back(contour);
             //Paint it
-            cv::circle(imgRoiColor, meanPoint, meanRadius, cv::Scalar(255, 0, 0), 1);
+            cv::circle(imgRoiColor, meanPoint, meanRadius, cv::Scalar(255, 0, 0), 2, 8);
 
             if( this->isSpaceAlreadyOccupied(meanPoint, meanRadius) ) {
                 continue; //Already, next one
@@ -225,8 +225,8 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
                     continue;
                 }
 
-                acceptedContours.push_back(tempColony);
-                cv::circle(imgRoiColor, mean, meanRadius, cv::Scalar(255, 0, 0), 1);
+                this->acceptedColonies.push_back(tempColony);
+                cv::circle(imgRoiColor, mean, meanRadius, cv::Scalar(255, 0, 0), 2, 8);
             }
         }
 
@@ -276,7 +276,7 @@ int CellCounter::countColoniesCascade(QPoint circleCenter, int circleRad, QSize 
     qDebug() << "Organism" << organism;
     qDebug() << "Starting counting colonies on: " << this->return_imgPath();
 
-    this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize);
+    this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize, this->img);
 
     //Load the right .xml files based on user choice
     std::string singleColonyXML;
@@ -315,7 +315,7 @@ int CellCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCascad
 
     for(cv::Rect colony: this->singleColonies) {
         cv::Point center(colony.x + colony.width/2, colony.y + colony.height/2);
-        cv::circle(imgResult, center, (colony.width+colony.height)/4, cv::Scalar(255, 0, 0), 1);
+        cv::circle(imgResult, center, (colony.width+colony.height)/2, cv::Scalar(255, 0, 0), 2, 8);
     }
     foundColonies += this->singleColonies.size();
 
@@ -326,19 +326,19 @@ int CellCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCascad
     return foundColonies;
 }
 
-void CellCounter::calculateCircleCenterAndRadius(QPoint circleCenter, int circleRad, QSize pixmapSize)
+void CellCounter::calculateCircleCenterAndRadius(QPoint circleCenter, int circleRad, QSize pixmapSize, cv::Mat imgOrig)
 {
 
     //Recalculate factor for radius and circleCenter
-    float factorWidth = (float) this->img.cols / pixmapSize.width();
-    float factorHeight = (float) this->img.rows / pixmapSize.height();
+    float factorWidth = (float) imgOrig.cols / pixmapSize.width();
+    float factorHeight = (float) imgOrig.rows / pixmapSize.height();
 
     //convert QPoint to OpenCV point
     this->circleCenterPoint.x = circleCenter.x() * factorWidth;
     this->circleCenterPoint.y = circleCenter.y() * factorHeight;
 
     this->circleRadius = circleRad;
-    if(factorWidth > factorHeight)
+    if(factorWidth > factorHeight) // maybe swap to avoid accessing Mat elements that do not exist
         this->circleRadius *= factorWidth;
     else
         this->circleRadius *= factorWidth;
@@ -395,6 +395,21 @@ std::vector<std::vector<cv::Point>> CellCounter::seperateColonies(std::vector<cv
     }
 
     return returnVector;
+}
+
+void CellCounter::addCircle(QPoint cursorPoint, QSize pixmapSize)
+{
+    int radius = (this->minRadius+this->maxRadius)/2;
+    this->calculateCircleCenterAndRadius(cursorPoint, radius, pixmapSize, this->imgColor);
+
+    //Add point to vector with just the center
+    cv::Point pnt(cursorPoint.x(), cursorPoint.y());
+    std::vector<cv::Point> pntVector = {pnt};
+    this->acceptedColonies.push_back(pntVector);
+
+    cv::circle(this->imgColor, this->circleCenterPoint, radius, cv::Scalar(255, 0, 0), 2, 8);
+
+    return;
 }
 
 

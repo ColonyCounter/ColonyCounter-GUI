@@ -7,8 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>702</width>
-    <height>650</height>
+    <height>686</height>
    </rect>
+  </property>
+  <property name="cursor">
+   <cursorShape>ArrowCursor</cursorShape>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -24,7 +27,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>Count Cells</string>
+       <string>Count Colonies</string>
       </property>
      </widget>
     </item>
@@ -167,6 +170,13 @@
       </property>
      </widget>
     </item>
+    <item row="1" column="1">
+     <widget class="QPushButton" name="chooseCircleButton">
+      <property name="text">
+       <string>Choose petri dish</string>
+      </property>
+     </widget>
+    </item>
     <item row="8" column="1">
      <widget class="QLabel" name="minPcaRatioLabel">
       <property name="text">
@@ -181,13 +191,6 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QPushButton" name="chooseCircleButton">
-      <property name="text">
-       <string>Choose petri dish</string>
-      </property>
-     </widget>
-    </item>
     <item row="14" column="1">
      <widget class="QLabel" name="maxRadiusLabel">
       <property name="text">
@@ -195,33 +198,10 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="0" rowspan="27">
-     <widget class="QLabel" name="imgLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
     <item row="12" column="1">
      <widget class="QLabel" name="minRadiusLabel">
       <property name="text">
        <string>Min. radius</string>
-      </property>
-     </widget>
-    </item>
-    <item row="17" column="1">
-     <widget class="QLabel" name="countCellsLabel">
-      <property name="text">
-       <string>Colonies found: 0</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
@@ -242,6 +222,16 @@
       </property>
      </widget>
     </item>
+    <item row="17" column="1">
+     <widget class="QLabel" name="countCellsLabel">
+      <property name="text">
+       <string>Colonies found: 0</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="1">
      <widget class="QLabel" name="moduleUsedLabel">
       <property name="text">
@@ -249,7 +239,47 @@
       </property>
      </widget>
     </item>
+    <item row="28" column="1">
+     <widget class="QPushButton" name="add_deleteColoniesButton">
+      <property name="text">
+       <string>Add/Delete Colonies</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" rowspan="29">
+     <widget class="QLabel" name="imgLabel">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
    </layout>
+   <zorder>countCellsButton</zorder>
+   <zorder>thresholdTypeLabel</zorder>
+   <zorder>thresholdValueSpin</zorder>
+   <zorder>minRadiusSpin</zorder>
+   <zorder>maxRadiusSpin</zorder>
+   <zorder>maxPcaRatioSpin</zorder>
+   <zorder>minPcaRatioSpin</zorder>
+   <zorder>thresholdTypeBox</zorder>
+   <zorder>thresholdValueLabel</zorder>
+   <zorder>minPcaRatioLabel</zorder>
+   <zorder>minContourSizeLabel</zorder>
+   <zorder>chooseCircleButton</zorder>
+   <zorder>maxRadiusLabel</zorder>
+   <zorder>minRadiusLabel</zorder>
+   <zorder>countCellsLabel</zorder>
+   <zorder>minContourSizeSpin</zorder>
+   <zorder>maxPcaRatioLabel</zorder>
+   <zorder>moduleUsedLabel</zorder>
+   <zorder>add_deleteColoniesButton</zorder>
+   <zorder>imgLabel</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

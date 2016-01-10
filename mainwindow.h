@@ -37,8 +37,8 @@ public:
     ~MainWindow();
     bool eventFilter(QObject *obj, QEvent *event);
     //void mouseMoveEvent(QMouseEvent *);
-    void mousePressEvent(QMouseEvent *);
     void wheelEvent(QWheelEvent *);
+    void mousePressEvent(QMouseEvent *);
     void resizeEvent(QResizeEvent *);
     void updateImgLabel();
 
@@ -66,6 +66,8 @@ private slots:
 
     void on_actionStandard_module_triggered();
 
+    void on_add_deleteColoniesButton_clicked();
+
 protected:
 
 private:
@@ -80,6 +82,7 @@ private:
     bool drawCircleAllowed = false; //gets false when button to accept circle was pressed
     bool updateCircleAllowed = false; //gets false in doUpdateCircle
     bool showColored = false;
+    bool editColonies = false; //true when add_deleteColoniesButton clicked
     QSize pixmapSize;
     QPoint mouseCurrentPos;
     QPoint circleCenter;
