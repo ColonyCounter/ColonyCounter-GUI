@@ -13,15 +13,6 @@
 
 #include "defines.h"
 
-#define BINARY 0
-#define BINARY_INVERTED 1
-#define TRUNCATE 2
-#define TO_ZERO 3
-#define TO_ZERO_INVERTED 4
-
-#define BLACK 0x000000
-#define WHITE 0xffffff
-
 
 class CellCounter
 {

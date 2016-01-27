@@ -13,6 +13,8 @@ TEMPLATE = app
 
 CONFIG += c++11
 
+DEFINES += PI_CAM=false
+
 PKGCONFIG += opencv
 
 INCLUDEPATH += /usr/local/include/opencv
@@ -20,11 +22,13 @@ LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lope
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    cellcounter.cpp
+    cellcounter.cpp \
+    picam.cpp
 
 HEADERS  += mainwindow.h \
     cellcounter.h \
-    defines.h
+    defines.h \
+    picam.h
 
 FORMS    += mainwindow.ui
 

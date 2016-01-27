@@ -19,8 +19,9 @@
 
 #include <QDebug>
 
-#include "cellcounter.h"
 #include "defines.h"
+#include "cellcounter.h"
+#include "picam.h"
 
 extern CellCounter Cells;
 

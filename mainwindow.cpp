@@ -23,8 +23,8 @@ void MainWindow::on_actionLoad_Image_triggered()
         //Set standard configuration for loaded image
         Cells.set_imgPath(fileName);
         Cells.loadImage(fileName);
-        Cells.thresholdTypeChanged(1);
-        Cells.thresholdValueChanged(70);
+        Cells.thresholdTypeChanged(BINARY_INVERTED);
+        Cells.thresholdValueChanged(THRESHOLD_VALUE);
 
         this->showColored = false;
         ui->countCellsLabel->setText("Found colonies: 0");
@@ -46,7 +46,7 @@ void MainWindow::updateImgLabel()
     int w  = ui->imgLabel->width();
     int h  = ui->imgLabel->height();
 
-    pixmapImg = pixmapImg.scaled(w,h,Qt::KeepAspectRatio);
+    this->pixmapImg = this->pixmapImg.scaled(w, h, Qt::KeepAspectRatio);
     //Pixmap width and height different to ui->imgLabel's
     this->pixmapSize.setWidth(pixmapImg.width());
     this->pixmapSize.setHeight(pixmapImg.height());
@@ -66,7 +66,6 @@ void MainWindow::updateImgLabel()
         qDebug() << "Drawed";
     }
 
-    // set a scaled pixmap to a w x h window keeping its aspect ratio
     ui->imgLabel->setPixmap(pixmapImg);
     qDebug() << "Updated";
 }
@@ -81,6 +80,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 void MainWindow::on_thresholdValueSpin_valueChanged(int thresholdValue)
 {
     Cells.thresholdValueChanged(thresholdValue);
+
     this->showColored = false;
     updateImgLabel();
 
@@ -90,6 +90,7 @@ void MainWindow::on_thresholdValueSpin_valueChanged(int thresholdValue)
 void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
 {
     Cells.thresholdTypeChanged(index);
+
     this->showColored = false;
     updateImgLabel();
 
@@ -104,7 +105,7 @@ void MainWindow::on_countCellsButton_clicked()
     //Check which module/function for colony counting should be used
     if( this->useCascadeClassifier == true ) {
         qDebug() << "Use cascade classifier for counting.";
-        this->update();
+
         //Start new thread to run countCells function, otherwise GUI freezes
         this->watcher = new QFutureWatcher<int>;
         connect(this->watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
@@ -112,14 +113,14 @@ void MainWindow::on_countCellsButton_clicked()
     }
     else {
         qDebug() << "Use standard module for counting.";
-        this->update();
+
         //Start new thread to run countCells function, otherwise GUI freezes
         this->watcher = new QFutureWatcher<int>;
         connect(this->watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
         this->watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize));
     }
-    //Add check: if return value is < 0 -> there was an error: check qDebug() and display Error message
 
+    //Add check: if return value is < 0 -> there was an error: check qDebug() and display Error message
     return;
 }
 
@@ -127,6 +128,7 @@ void MainWindow::on_chooseCircleButton_clicked()
 {
     this->drawCircleAllowed = true;
     this->showColored = false;
+
     ui->countCellsLabel->setText("Found colonies: 0");
     this->update();
 }
@@ -148,6 +150,8 @@ void MainWindow::finishedCounting()
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
     QPoint wheelDegrees = event->angleDelta()/8;
+
+    //Increase or decrease circle radius
     if( this->drawCircleAllowed ) {
 
         if( wheelDegrees.y() > 0) {
@@ -164,6 +168,7 @@ void MainWindow::wheelEvent(QWheelEvent *event)
 }
 
 //Could not get it to work, it needed a mouse click to trigger, although mouse tracking was set to true
+//Event filter is used
 /*void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
     if( this->drawCircle ) {
@@ -178,10 +183,16 @@ void MainWindow::wheelEvent(QWheelEvent *event)
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-  if (event->type() == QEvent::MouseMove) {
+
+    if (event->type() == QEvent::MouseMove) {
+
     QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
     statusBar()->showMessage(QString("Mouse move (%1,%2)").arg(mouseEvent->pos().x()).arg(mouseEvent->pos().y()));
-    if( !drawCircle && drawCircleAllowed ) {
+
+    if( !this->drawCircle && this->drawCircleAllowed ) {
+        //drawCircle indicates that a new circle should be drawn, position or radius changed
+        //drawCircleAllowed is true after chooseCircle button was clicked and till user does right click
+        //updateCircleAllowed reduces the amount of how many times the circle is redrawn, max every 0.1 seconds
         this->mouseCurrentPos.setX(mouseEvent->pos().x());
         this->mouseCurrentPos.setY(mouseEvent->pos().y());
         this->circleCenter = this->mouseCurrentPos;
@@ -189,17 +200,21 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         this->drawCircle = this->updateCircleAllowed = true;
         QTimer::singleShot(100, this, SLOT(updateCircle()));
     }
+
   }
+
 
   return false;
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
 {
+
     if( this->drawCircleAllowed && (mouseEvent->buttons() == Qt::LeftButton) ) {
         this->drawCircleAllowed = false;
           qDebug() << "Mouse pressed down.";
     }
+
     else if( this->editColonies && (mouseEvent->buttons() == Qt::LeftButton) ) {
         qDebug() << "Left mouse button pressed" << mouseEvent->pos();
         qDebug() << ui->imgLabel->pos();
@@ -212,7 +227,6 @@ void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
         calculatedPosition.setX((int) x);
         calculatedPosition.setY((int) y);
 
-        //Image does not occupy all of image label! Recalculate it
         Cells.addCircle(calculatedPosition, this->pixmapSize);
         this->updateImgLabel();
     }

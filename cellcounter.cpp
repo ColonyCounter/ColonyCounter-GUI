@@ -27,7 +27,8 @@ int CellCounter::loadImage(QString fileName)
 
 void CellCounter::thresholdValueChanged(int thresholdValueArg)
 {
-    thresholdValue = thresholdValueArg;
+    //Save value and update image
+    this->thresholdValue = thresholdValueArg;
     cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
 
     imgQ = QImage((uchar*) img.data, img.cols, img.rows, img.step, QImage::Format_Indexed8);
@@ -36,7 +37,8 @@ void CellCounter::thresholdValueChanged(int thresholdValueArg)
 
 void CellCounter::thresholdTypeChanged(int thresholdTypeArg)
 {
-    thresholdType = thresholdTypeArg;
+    //Save type and update image
+    this->thresholdType = thresholdTypeArg;
     cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
 
     imgQ = QImage((uchar*) img.data, img.cols, img.rows, img.step, QImage::Format_Indexed8);
@@ -46,6 +48,12 @@ void CellCounter::thresholdTypeChanged(int thresholdTypeArg)
 int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize pixmapSize)
 {
     qDebug() << "Starting counting colonies on: " << this->return_imgPath();
+
+    //Reset variables for a new start
+    this->acceptedColonies.clear();
+    this->contours.clear();
+    this->hierarchy.clear();
+    this->foundColonies = 0;
 
     this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize, this->img);
 
@@ -213,10 +221,11 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
                 cv::Point sum = std::accumulate(tempColony.begin(), tempColony.end(), cv::Point(0, 0));
                 cv::Point mean = sum * (1.0 / tempColony.size());
 
+                //Get the mean radius
                 meanRadius = 0;
                 for(cv::Point pnt: tempColony) {
-                    float distanceX = (float) (x-mean.x)*(x-mean.x);
-                    float distanceY = (float) (y-mean.y)*(y-mean.y);
+                    float distanceX = (float) (pnt.x-mean.x)*(pnt.x-mean.x);
+                    float distanceY = (float) (pnt.y-mean.y)*(pnt.y-mean.y);
                     meanRadius += (float) sqrt(distanceX+distanceY);
                 }
                 meanRadius /= tempColony.size();
@@ -356,11 +365,12 @@ int CellCounter::isCircle(std::vector<cv::Point> &data)
 
     cv::PCA pcaAnalysis(dataBuffer, cv::Mat(), CV_PCA_DATA_AS_ROW);
 
-    //Calculate the radius, it's the hypothesis of the triangle
+    //Calculate the ratio
     float ratio = sqrt(pcaAnalysis.eigenvalues.at<float>(0)) / sqrt(pcaAnalysis.eigenvalues.at<float>(1));
 
     if(ratio <= this->minCircleRatio || ratio > this->maxCircleRatio) {
         return 0;
+        qDebug() << "No circle";
     }
 
     return 1;
