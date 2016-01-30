@@ -264,17 +264,57 @@ void MainWindow::on_maxPcaRatioSpin_valueChanged(double newValue)
     Cells.set_maxCircleRatio((float) newValue);
 }
 
+void MainWindow::disableWidgets(void)
+{
+    ui->thresholdValueLabel->setEnabled(false);
+    ui->thresholdValueSpin->setEnabled(false);
+    ui->thresholdTypeLabel->setEnabled(false);
+    ui->thresholdTypeBox->setEnabled(false);
+    ui->minContourSizeLabel->setEnabled(false);
+    ui->minContourSizeSpin->setEnabled(false);
+    ui->minPcaRatioLabel->setEnabled(false);
+    ui->minPcaRatioSpin->setEnabled(false);
+    ui->maxPcaRatioLabel->setEnabled(false);
+    ui->maxPcaRatioSpin->setEnabled(false);
+    ui->minRadiusLabel->setEnabled(false);
+    ui->minRadiusSpin->setEnabled(false);
+    ui->maxRadiusLabel->setEnabled(false);
+    ui->maxRadiusSpin->setEnabled(false);
+}
+
+void MainWindow::enableWidgets(void)
+{
+    ui->thresholdValueLabel->setEnabled(true);
+    ui->thresholdValueSpin->setEnabled(true);
+    ui->thresholdTypeLabel->setEnabled(true);
+    ui->thresholdTypeBox->setEnabled(true);
+    ui->minContourSizeLabel->setEnabled(true);
+    ui->minContourSizeSpin->setEnabled(true);
+    ui->minPcaRatioLabel->setEnabled(true);
+    ui->minPcaRatioSpin->setEnabled(true);
+    ui->maxPcaRatioLabel->setEnabled(true);
+    ui->maxPcaRatioSpin->setEnabled(true);
+    ui->minRadiusLabel->setEnabled(true);
+    ui->minRadiusSpin->setEnabled(true);
+    ui->maxRadiusLabel->setEnabled(true);
+    ui->maxRadiusSpin->setEnabled(true);
+}
+
 void MainWindow::on_actionE_coli_triggered()
 {
     this->useCascadeClassifier = true;
     this->cascadeClassifierType = E_COLI;
     ui->moduleUsedLabel->setText(E_COLI);
+
+    this->disableWidgets();
 }
 
 void MainWindow::on_actionStandard_module_triggered()
 {
     this->useCascadeClassifier = false;
     ui->moduleUsedLabel->setText("Standard");
+
+    this->enableWidgets();
 }
 
 void MainWindow::on_add_deleteColoniesButton_clicked()

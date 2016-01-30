@@ -63,8 +63,9 @@ private slots:
     void on_minRadiusSpin_valueChanged(double arg1);
     void on_maxRadiusSpin_valueChanged(double arg1);
 
+    void disableWidgets(void);
+    void enableWidgets(void);
     void on_actionE_coli_triggered();
-
     void on_actionStandard_module_triggered();
 
     void on_add_deleteColoniesButton_clicked();
