@@ -215,10 +215,7 @@ void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
           qDebug() << "Mouse pressed down.";
     }
 
-    else if( this->editColonies && (mouseEvent->buttons() == Qt::LeftButton) ) {
-        qDebug() << "Left mouse button pressed" << mouseEvent->pos();
-        qDebug() << ui->imgLabel->pos();
-
+    else if( this->editColonies ) {
         //Need to recalculate position, as image does not occupy all of qLabel
         float x = (float) mouseEvent->pos().x() - (ui->imgLabel->pos().x() + ui->imgLabel->width() - this->pixmapSize.width());
         float y = (float) mouseEvent->pos().y() - (ui->imgLabel->pos().y() + ui->imgLabel->height() - this->pixmapSize.height());
@@ -227,7 +224,16 @@ void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
         calculatedPosition.setX((int) x);
         calculatedPosition.setY((int) y);
 
-        Cells.addCircle(calculatedPosition, this->pixmapSize);
+        if( mouseEvent->buttons() == Qt::LeftButton ) {
+            qDebug() << "Left mouse button pressed" << mouseEvent->pos();
+            qDebug() << ui->imgLabel->pos();
+            Cells.addCircle(calculatedPosition, this->pixmapSize);
+        }
+        else if( mouseEvent->buttons() == Qt::RightButton ) {
+            qDebug() << "Right mouse button pressed" << mouseEvent->pos();
+            qDebug() << ui->imgLabel->pos();
+            Cells.removeCircle(calculatedPosition, this->pixmapSize);
+        }
         this->updateImgLabel();
     }
 }

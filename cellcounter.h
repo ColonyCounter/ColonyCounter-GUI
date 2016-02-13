@@ -60,7 +60,9 @@ public:
     void calculateCircleCenterAndRadius(QPoint, int, QSize, cv::Mat);
     int isCircle(std::vector<cv::Point> &);
     std::vector<std::vector<cv::Point>> seperateColonies(std::vector<cv::Point> &, int);
+    unsigned int root(unsigned int);
     void addCircle(QPoint, QSize);
+    void removeCircle(QPoint, QSize);
 
     void set_contourSize(int);
     void set_minRadius(double);

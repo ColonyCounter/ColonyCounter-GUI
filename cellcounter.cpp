@@ -29,6 +29,7 @@ void CellCounter::thresholdValueChanged(int thresholdValueArg)
 {
     //Save value and update image
     this->thresholdValue = thresholdValueArg;
+    cv::equalizeHist( this->imgGray, this->imgGray );
     cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
 
     imgQ = QImage((uchar*) img.data, img.cols, img.rows, img.step, QImage::Format_Indexed8);
@@ -39,6 +40,7 @@ void CellCounter::thresholdTypeChanged(int thresholdTypeArg)
 {
     //Save type and update image
     this->thresholdType = thresholdTypeArg;
+    cv::equalizeHist( this->imgGray, this->imgGray );
     cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
 
     imgQ = QImage((uchar*) img.data, img.cols, img.rows, img.step, QImage::Format_Indexed8);
@@ -337,7 +339,6 @@ int CellCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCascad
 
 void CellCounter::calculateCircleCenterAndRadius(QPoint circleCenter, int circleRad, QSize pixmapSize, cv::Mat imgOrig)
 {
-
     //Recalculate factor for radius and circleCenter
     float factorWidth = (float) imgOrig.cols / pixmapSize.width();
     float factorHeight = (float) imgOrig.rows / pixmapSize.height();
@@ -407,6 +408,22 @@ std::vector<std::vector<cv::Point>> CellCounter::seperateColonies(std::vector<cv
     return returnVector;
 }
 
+unsigned int root(unsigned int x)
+{
+    //Source: http://supp.iar.com/FilesPublic/SUPPORT/000419/AN-G-002.pdf
+    unsigned int a,b;
+    b = x;
+    a = x = 0x3f;
+    x = b/x;
+    a = x = (x+a)>>1;
+    x = b/x;
+    a = x = (x+a)>>1;
+    x = b/x;
+    x = (x+a)>>1;
+
+    return(x);
+}
+
 void CellCounter::addCircle(QPoint cursorPoint, QSize pixmapSize)
 {
     int radius = (this->minRadius+this->maxRadius)/2;
@@ -422,6 +439,32 @@ void CellCounter::addCircle(QPoint cursorPoint, QSize pixmapSize)
     return;
 }
 
+void CellCounter::removeCircle(QPoint cursorPoint, QSize pixmapSize)
+{
+    int nearestPoints = -1;
+    this->calculateCircleCenterAndRadius(cursorPoint, this->maxRadius, pixmapSize, this->imgColor);
+
+    //Search for nearest circle to remove
+    int vectorSize = this->acceptedColonies.size();
+    int i = 0;
+    cv::Point pnt = this->acceptedColonies.at(i).at(0) - this->circleCenterPoint;
+    unsigned int oldDistance = pnt.x * pnt.x + pnt.y * pnt.y; //initial point to compare to
+    for(i=0; i < vectorSize; i++) {
+        //Only Checks the first of the saved points to speed this up
+        pnt = this->acceptedColonies.at(i).at(0) - this->circleCenterPoint;
+
+        unsigned int newDistance = pnt.x * pnt.x + pnt.y * pnt.y;
+        if( newDistance < oldDistance ) {
+            oldDistance = newDistance;
+            nearestPoints = i;
+        }
+    }
+
+    //Delete the found colony from the vector
+    if( nearestPoints > -1 ) {
+        this->acceptedColonies.erase(this->acceptedColonies.begin()+i);
+    }
+}
 
 void CellCounter::set_contourSize(int newSize)
 {
