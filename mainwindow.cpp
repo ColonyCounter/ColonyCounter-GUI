@@ -233,6 +233,8 @@ void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
             qDebug() << "Right mouse button pressed" << mouseEvent->pos();
             qDebug() << ui->imgLabel->pos();
             Cells.removeCircle(calculatedPosition, this->pixmapSize);
+
+            Cells.drawCircles();
         }
         this->updateImgLabel();
     }

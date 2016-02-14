@@ -13,11 +13,18 @@
 
 #include "defines.h"
 
+struct point_radius {
+    cv::Point pnt;
+    float radius;
+};
+
+typedef struct point_radius point_radius;
+
 
 class CellCounter
 {
 private:
-    cv::Mat imgOriginal, imgGray, img, imgColor, imgOccupied;
+    cv::Mat imgOriginal, imgGray, img, imgColorOriginal, imgColor, imgOccupied;
     QImage imgQ, imgQColor; //Saved for qt so we can just convert to Pixmap
     QString imgPath = "";
     int foundColonies = 0;
@@ -41,6 +48,7 @@ private:
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
     std::vector<std::vector<cv::Point>> acceptedColonies;
+    std::vector<point_radius> acceptedMeansColonies;
     std::vector<cv::Point> points;
 
     std::vector<cv::Rect> singleColonies;
@@ -61,6 +69,7 @@ public:
     int isCircle(std::vector<cv::Point> &);
     std::vector<std::vector<cv::Point>> seperateColonies(std::vector<cv::Point> &, int);
     unsigned int root(unsigned int);
+    void drawCircles();
     void addCircle(QPoint, QSize);
     void removeCircle(QPoint, QSize);
 

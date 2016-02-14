@@ -151,7 +151,10 @@ int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize
 void CellCounter::analyseBlobs(cv::Mat imgRoi)
 {
     cv::Mat imgRoiColor;
-    cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2RGB);
+    cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2RGB); //Qt uses RGB and opencv BGR
+
+    //store the original roi colored, to redraw circle if needed
+    imgRoiColor.copyTo(this->imgColorOriginal);
 
     this->foundColonies = 0; //reset
     this->imgOccupied = cv::Mat(imgRoi.rows, imgRoi.cols, CV_8UC1, cv::Scalar(0, 0, 0));
@@ -207,6 +210,14 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
             }
             //Accept found colony
             this->acceptedColonies.push_back(contour);
+
+            //Store center point to vector
+            point_radius tempPointRadius;
+            tempPointRadius.pnt = meanPoint;
+            tempPointRadius.radius = meanRadius;
+
+            this->acceptedMeansColonies.push_back(tempPointRadius);
+
             //Paint it
             cv::circle(imgRoiColor, meanPoint, meanRadius, cv::Scalar(255, 0, 0), 2, 8);
 
@@ -237,6 +248,12 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
                 }
 
                 this->acceptedColonies.push_back(tempColony);
+
+                point_radius tempPntRadius;
+                tempPntRadius.pnt = mean;
+                tempPntRadius.radius = meanRadius;
+
+                this->acceptedMeansColonies.push_back(tempPntRadius);
                 cv::circle(imgRoiColor, mean, meanRadius, cv::Scalar(255, 0, 0), 2, 8);
             }
         }
@@ -424,15 +441,31 @@ unsigned int root(unsigned int x)
     return(x);
 }
 
+void CellCounter::drawCircles()
+{
+    this->imgColorOriginal.copyTo(this->imgColor);
+
+    for(point_radius pntAndRad: this->acceptedMeansColonies) {
+        cv::circle(this->imgColor, pntAndRad.pnt, pntAndRad.radius, cv::Scalar(255, 0, 0), 2, 8);
+    }
+
+    return;
+}
+
 void CellCounter::addCircle(QPoint cursorPoint, QSize pixmapSize)
 {
     int radius = (this->minRadius+this->maxRadius)/2;
     this->calculateCircleCenterAndRadius(cursorPoint, radius, pixmapSize, this->imgColor);
 
     //Add point to vector with just the center
-    cv::Point pnt(cursorPoint.x(), cursorPoint.y());
+    cv::Point pnt(this->circleCenterPoint.x, this->circleCenterPoint.y);
     std::vector<cv::Point> pntVector = {pnt};
     this->acceptedColonies.push_back(pntVector);
+
+    point_radius tempPointRadius;
+    tempPointRadius.pnt = pnt;
+    tempPointRadius.radius = radius;
+    this->acceptedMeansColonies.push_back(tempPointRadius);
 
     cv::circle(this->imgColor, this->circleCenterPoint, radius, cv::Scalar(255, 0, 0), 2, 8);
 
@@ -441,28 +474,34 @@ void CellCounter::addCircle(QPoint cursorPoint, QSize pixmapSize)
 
 void CellCounter::removeCircle(QPoint cursorPoint, QSize pixmapSize)
 {
-    int nearestPoints = -1;
+    int nearestPoint = -1;
     this->calculateCircleCenterAndRadius(cursorPoint, this->maxRadius, pixmapSize, this->imgColor);
 
     //Search for nearest circle to remove
-    int vectorSize = this->acceptedColonies.size();
+    int vectorSize = this->acceptedMeansColonies.size();
+
+    if( vectorSize < 1 ) {
+        return; //no elements in vector
+    }
+
     int i = 0;
-    cv::Point pnt = this->acceptedColonies.at(i).at(0) - this->circleCenterPoint;
+    cv::Point pnt = this->acceptedMeansColonies.at(i).pnt - this->circleCenterPoint;
     unsigned int oldDistance = pnt.x * pnt.x + pnt.y * pnt.y; //initial point to compare to
     for(i=0; i < vectorSize; i++) {
         //Only Checks the first of the saved points to speed this up
-        pnt = this->acceptedColonies.at(i).at(0) - this->circleCenterPoint;
+        pnt = this->acceptedMeansColonies.at(i).pnt - this->circleCenterPoint;
 
         unsigned int newDistance = pnt.x * pnt.x + pnt.y * pnt.y;
         if( newDistance < oldDistance ) {
             oldDistance = newDistance;
-            nearestPoints = i;
+            nearestPoint = i;
         }
     }
 
     //Delete the found colony from the vector
-    if( nearestPoints > -1 ) {
-        this->acceptedColonies.erase(this->acceptedColonies.begin()+i);
+    if( nearestPoint > -1 ) {
+        this->acceptedColonies.erase(this->acceptedColonies.begin()+nearestPoint);
+        this->acceptedMeansColonies.erase(this->acceptedMeansColonies.begin()+nearestPoint);
     }
 }
 
