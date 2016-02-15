@@ -76,7 +76,7 @@
       </property>
      </widget>
     </item>
-    <item row="20" column="1" rowspan="8">
+    <item row="22" column="1" rowspan="8">
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -233,8 +233,8 @@
       </property>
      </widget>
     </item>
-    <item row="28" column="1">
-     <widget class="QPushButton" name="add_deleteColoniesButton">
+    <item row="12" column="1">
+     <widget class="QLabel" name="minRadiusLabel">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -242,23 +242,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>Add/Delete Colonies</string>
-      </property>
-     </widget>
-    </item>
-    <item row="17" column="1">
-     <widget class="QLabel" name="countCellsLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Colonies found: 0</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <string>Min. radius</string>
       </property>
      </widget>
     </item>
@@ -278,8 +262,8 @@
       </property>
      </widget>
     </item>
-    <item row="12" column="1">
-     <widget class="QLabel" name="minRadiusLabel">
+    <item row="17" column="1">
+     <widget class="QLabel" name="countCellsLabel">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -287,7 +271,10 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>Min. radius</string>
+       <string>Colonies found: 0</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
@@ -304,7 +291,7 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="0" rowspan="29">
+    <item row="0" column="0" rowspan="31">
      <widget class="QLabel" name="imgLabel">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -343,6 +330,19 @@
       </property>
      </widget>
     </item>
+    <item row="20" column="1">
+     <widget class="QPushButton" name="add_deleteColoniesButton">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Add/Delete Colonies</string>
+      </property>
+     </widget>
+    </item>
    </layout>
    <zorder>countCellsButton</zorder>
    <zorder>thresholdTypeLabel</zorder>
@@ -362,8 +362,8 @@
    <zorder>minContourSizeSpin</zorder>
    <zorder>maxPcaRatioLabel</zorder>
    <zorder>moduleUsedLabel</zorder>
-   <zorder>add_deleteColoniesButton</zorder>
    <zorder>imgLabel</zorder>
+   <zorder>add_deleteColoniesButton</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

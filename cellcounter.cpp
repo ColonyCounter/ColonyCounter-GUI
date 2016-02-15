@@ -160,7 +160,7 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
     this->imgOccupied = cv::Mat(imgRoi.rows, imgRoi.cols, CV_8UC1, cv::Scalar(0, 0, 0));
 
     for(std::vector<cv::Point> contour: this->contours) {
-        //mean Point
+        //calculate the mean/center point
         cv::Point sumPoint = std::accumulate(contour.begin(), contour.end(), cv::Point(0, 0));
         cv::Point meanPoint = sumPoint * (1.0 / contour.size());
 
@@ -172,17 +172,20 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
         for(iCounter=0; iCounter < contour.size(); iCounter++) {
             x = (float) contour.at(iCounter).x;
             y = (float) contour.at(iCounter).y;
-            //use vector style to calculate distance between meanPoint and current processed point
+
+            //calculate distance between meanPoint and current processed point
             float distanceX = (float) (x-meanPoint.x)*(x-meanPoint.x);
             float distanceY = (float) (y-meanPoint.y)*(y-meanPoint.y);
             meanRadius += (float) sqrt(distanceX+distanceY);
+            //maybe replace sqrt with: https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
+            //or use integer for meanRadius, then this->root can be used
         }
 
         meanRadius = meanRadius / contour.size(); //get the mean of it
         float circleArea = (float) M_PI * meanRadius * meanRadius;
 
         int cSize = contour.size();
-        if(cSize < this->minContourSize) { //should be at least a rectangle I think, means c_size should be at least 4 (default value)
+        if(cSize < this->minContourSize) { //should be at least a rectangle I think, c_size=4 (default value)
             continue; //next one, not enough edges
         }
 
@@ -206,24 +209,26 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
 
         else if(k == 1) {
             if( !(this->isCircle(contour)) || (this->minRadius > meanRadius) || (this->maxRadius < meanRadius) ) {
+                //Not a colony
                 continue;
             }
-            //Accept found colony
-            this->acceptedColonies.push_back(contour);
+
+            if( this->isSpaceAlreadyOccupied(meanPoint, meanRadius) ) {
+                continue; //There is already something, next one
+            }
 
             //Store center point to vector
             point_radius tempPointRadius;
             tempPointRadius.pnt = meanPoint;
             tempPointRadius.radius = meanRadius;
 
+            //Accept found colony
+            this->acceptedColonies.push_back(contour);
             this->acceptedMeansColonies.push_back(tempPointRadius);
 
             //Paint it
             cv::circle(imgRoiColor, meanPoint, meanRadius, cv::Scalar(255, 0, 0), 2, 8);
 
-            if( this->isSpaceAlreadyOccupied(meanPoint, meanRadius) ) {
-                continue; //Already, next one
-            }
             this->foundColonies++;
         }
 
@@ -244,16 +249,22 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
                 meanRadius /= tempColony.size();
 
                 if(!(this->isCircle(tempColony)) || (this->minRadius > meanRadius) || (this->maxRadius < meanRadius)) {
+                    //Not a colony, next
                     continue;
                 }
 
-                this->acceptedColonies.push_back(tempColony);
+                if( this->isSpaceAlreadyOccupied(meanPoint, meanRadius) ) {
+                    continue; //Already, next one
+                }
 
                 point_radius tempPntRadius;
                 tempPntRadius.pnt = mean;
                 tempPntRadius.radius = meanRadius;
 
+                this->acceptedColonies.push_back(tempColony);
                 this->acceptedMeansColonies.push_back(tempPntRadius);
+
+                //Paint it
                 cv::circle(imgRoiColor, mean, meanRadius, cv::Scalar(255, 0, 0), 2, 8);
             }
         }
@@ -285,7 +296,8 @@ bool CellCounter::isSpaceAlreadyOccupied(cv::Point meanPoint, int meanRadius)
     pointsToCheck.at(7).x -= rad; pointsToCheck.at(7).y -= rad;
 
     for(cv::Point2f pnt: pointsToCheck) {
-        if( this->imgOccupied.at<uchar>(pnt.x, pnt.y) == 255 ) {
+        cv::Scalar color = this->imgOccupied.at<uchar>(pnt);
+        if( color.val[0] == 255 ) {
             qDebug() << pnt.x << "," << pnt.y << "already found.";
             return true; //there is already one
         }
