@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>702</width>
-    <height>686</height>
+    <height>698</height>
    </rect>
   </property>
   <property name="cursor">
@@ -389,6 +389,7 @@
       <addaction name="actionE_coli"/>
      </widget>
      <addaction name="actionStandard_module"/>
+     <addaction name="actionSingle_colonies"/>
      <addaction name="menuCascade"/>
     </widget>
     <addaction name="actionLoad_Image"/>
@@ -424,6 +425,11 @@
   <action name="actionUse_Pi_Camera">
    <property name="text">
     <string>Use Pi Camera</string>
+   </property>
+  </action>
+  <action name="actionSingle_colonies">
+   <property name="text">
+    <string>single colonies</string>
    </property>
   </action>
  </widget>

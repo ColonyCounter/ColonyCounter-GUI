@@ -117,7 +117,7 @@ void MainWindow::on_countCellsButton_clicked()
         //Start new thread to run countCells function, otherwise GUI freezes
         this->watcher = new QFutureWatcher<int>;
         connect(this->watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
-        this->watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize));
+        this->watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize, this->activeModule));
     }
 
     //Add check: if return value is < 0 -> there was an error: check qDebug() and display Error message
@@ -136,13 +136,22 @@ void MainWindow::on_chooseCircleButton_clicked()
 void MainWindow::finishedCounting()
 {
     qDebug() << "Finished counting";
+
+    this->updateFoundColoniesStr();
+
+    //Call Destructor of QFutureWatcher
+    this->watcher->~QFutureWatcher();
+
+    return;
+}
+
+void MainWindow::updateFoundColoniesStr(void)
+{
+    qDebug() << "Update found colonies string";
     int colonies = Cells.return_numberOfColonies();
     ui->countCellsLabel->setText(QString("Found colonies: %1").arg(colonies));
     this->showColored = true;
     this->updateImgLabel();
-
-    //Call Destructor of QFutureWatcher
-    this->watcher->~QFutureWatcher();
 
     return;
 }
@@ -217,8 +226,16 @@ void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
 
     else if( this->editColonies ) {
         //Need to recalculate position, as image does not occupy all of qLabel
-        float x = (float) mouseEvent->pos().x() - (ui->imgLabel->pos().x() + ui->imgLabel->width() - this->pixmapSize.width());
-        float y = (float) mouseEvent->pos().y() - (ui->imgLabel->pos().y() + ui->imgLabel->height() - this->pixmapSize.height());
+        //imgLabel width cannot be subtracted when window gets larger without resizing image
+        //float x = (float) mouseEvent->pos().x() - (ui->imgLabel->pos().x() + ui->imgLabel->width() - this->pixmapSize.width());
+        //float y = (float) mouseEvent->pos().y() - (ui->imgLabel->pos().y() + ui->imgLabel->height() - this->pixmapSize.height());
+        float x = (float) mouseEvent->pos().x() - (ui->imgLabel->pos().x());
+        float y = (float) mouseEvent->pos().y() - (ui->imgLabel->size().height() - this->pixmapSize.height()); //gets wrong when window gets resized
+
+        qDebug() << "x: " << ui->imgLabel->pos().x() << "y: " << ui->imgLabel->pos().y();
+        qDebug() << "pixmap.x: " << this->pixmapSize.width() << "pixmap.y: " << this->pixmapSize.height();
+        qDebug() << "imgLabel.x: " << ui->imgLabel->size().width() << "imgLabel.y: " << ui->imgLabel->size().height();
+        qDebug() << "imgLabelSize - pixmapSize" << (ui->imgLabel->size().height() - this->pixmapSize.height());
 
         QPoint calculatedPosition;
         calculatedPosition.setX((int) x);
@@ -236,7 +253,7 @@ void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
 
             Cells.drawCircles();
         }
-        this->updateImgLabel();
+        this->updateFoundColoniesStr(); //update string of found colonies
     }
 }
 
@@ -311,6 +328,8 @@ void MainWindow::enableWidgets(void)
 void MainWindow::on_actionE_coli_triggered()
 {
     this->useCascadeClassifier = true;
+    this->activeModule = cascade;
+
     this->cascadeClassifierType = E_COLI;
     ui->moduleUsedLabel->setText(E_COLI);
 
@@ -320,7 +339,17 @@ void MainWindow::on_actionE_coli_triggered()
 void MainWindow::on_actionStandard_module_triggered()
 {
     this->useCascadeClassifier = false;
+    this->activeModule = standard;
     ui->moduleUsedLabel->setText("Standard");
+
+    this->enableWidgets();
+}
+
+void MainWindow::on_actionSingle_colonies_triggered()
+{
+    this->useCascadeClassifier = false;
+    this->activeModule = single;
+    ui->moduleUsedLabel->setText("Single colonies");
 
     this->enableWidgets();
 }

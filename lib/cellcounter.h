@@ -18,6 +18,15 @@ struct point_radius {
     float radius;
 };
 
+
+enum analyseModule {
+    standard,
+    single,
+    cascade
+};
+
+typedef enum analyseModule analyseModule;
+
 typedef struct point_radius point_radius;
 
 
@@ -60,8 +69,9 @@ public:
     int loadImage(QString);
     void thresholdValueChanged(int);
     void thresholdTypeChanged(int);
-    int countColoniesStandard(QPoint, int, QSize);
+    int countColoniesStandard(QPoint, int, QSize, analyseModule);
     void analyseBlobs(cv::Mat);
+    void analyseBlobsAlternative(cv::Mat);
     bool isSpaceAlreadyOccupied(cv::Point, int);
     int countColoniesCascade(QPoint, int, QSize, QString);
     int analyseColoniesCascade(cv::CascadeClassifier);

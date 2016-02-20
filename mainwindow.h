@@ -20,7 +20,7 @@
 #include <QDebug>
 
 #include "defines.h"
-#include "cellcounter.h"
+#include "lib/cellcounter.h"
 #include "picam.h"
 
 extern CellCounter Cells;
@@ -42,6 +42,7 @@ public:
     void mousePressEvent(QMouseEvent *);
     void resizeEvent(QResizeEvent *);
     void updateImgLabel();
+    void updateFoundColoniesStr(void);
 
 signals:
     void Mouse_Pos();
@@ -70,6 +71,8 @@ private slots:
 
     void on_add_deleteColoniesButton_clicked();
 
+    void on_actionSingle_colonies_triggered();
+
 protected:
 
 private:
@@ -77,6 +80,7 @@ private:
     QGraphicsScene *scene = new QGraphicsScene(this);
     QPixmap pixmapImg;
     QFutureWatcher<int> *watcher;
+    analyseModule activeModule = standard;
     bool useCascadeClassifier = false;
     QString cascadeClassifierType = "E. coli"; //standard organism
     //Need to get rid of these three bool variables, that allows to draw circle

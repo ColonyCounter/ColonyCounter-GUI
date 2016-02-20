@@ -21,14 +21,14 @@ INCLUDEPATH += /usr/local/include/opencv
 LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lopencv_objdetect
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    cellcounter.cpp \
-    picam.cpp
+    mainwindow.cpp \
+    picam.cpp \
+    lib/cellcounter.cpp
 
 HEADERS  += mainwindow.h \
-    cellcounter.h \
     defines.h \
-    picam.h
+    picam.h \
+    lib/cellcounter.h
 
 FORMS    += mainwindow.ui
 
