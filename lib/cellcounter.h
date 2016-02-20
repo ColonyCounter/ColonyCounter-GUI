@@ -72,6 +72,7 @@ public:
     int countColoniesStandard(QPoint, int, QSize, analyseModule);
     void analyseBlobs(cv::Mat);
     void analyseBlobsAlternative(cv::Mat);
+    void analyseContours(cv::Mat imgRoiColor);
     bool isSpaceAlreadyOccupied(cv::Point, int);
     int countColoniesCascade(QPoint, int, QSize, QString);
     int analyseColoniesCascade(cv::CascadeClassifier);

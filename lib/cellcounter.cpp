@@ -20,7 +20,7 @@ int CellCounter::loadImage(QString fileName)
     }
 
     cv::cvtColor(this->imgOriginal, this->imgOriginal, CV_RGB2BGR); //Qt uses RGB and opencv BGR
-    cv::cvtColor(imgOriginal, imgGray, CV_BGR2GRAY);
+    cv::cvtColor(imgOriginal, imgGray, CV_BGR2GRAY); //imgGray should not be changes, it's the original image but gray
 
     return 1;
 }
@@ -61,9 +61,14 @@ int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize
 
     this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize, this->img);
 
+    //BINARY_INVERTED if colonies are darker than background, BINARY otherwise
     //Change img to BINARY_INVERTED
-    if(this->thresholdType != BINARY_INVERTED) {
-        cv::threshold(this->img, this->img, BINARY_INVERTED, 255, this->thresholdType);
+    if(this->thresholdType == BINARY_INVERTED) {
+        cv::threshold(this->imgGray, this->img, this->thresholdValue, 255, BINARY_INVERTED);
+    }
+    else {
+        //use BINARY if user defined so
+        cv::threshold(this->imgGray, this->img, this->thresholdValue, 255, BINARY);
     }
 
     //Create mask of petri dish
@@ -75,7 +80,8 @@ int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize
     //Create Region of Interest, reduzed size
     cv::Mat imgRoi(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
 
-    //cv::Mat cannyDrawing = cv::Mat::zeros(cannyOutput.size(), CV_8UC3);
+    //Reset image to use isSpaceAlreadyOccupied()
+    this->imgOccupied = cv::Mat(imgRoi.rows, imgRoi.cols, CV_8UC1, cv::Scalar(0, 0, 0));
 
     if( activeModule == single ) {
         this->analyseBlobsAlternative(imgRoi);
@@ -83,46 +89,6 @@ int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize
     else {
         this->analyseBlobs(imgRoi);
     }
-
-    /*
-    int numberOfContours;
-    cv::Scalar color = cv::Scalar(255, 0, 0);
-
-    for(numberOfContours = 0; numberOfContours < contours.size(); numberOfContours++) {
-        cv::drawContours(cannyDrawing, contours, numberOfContours, color, 2, 8, hierarchy, 0, cv::Point());
-    }
-    qDebug() << "Contours found: " << numberOfContours;
-    //Just for debuging
-    imwrite("cannyDrawing.jpg", cannyDrawing);
-    qDebug() << "Saved cannyDrawing to: cannyDrawing.jpg";
-    */
-
-    /*
-    int count = 0;
-    int maxRows = imgRoi.rows;
-    int maxCols = imgRoi.cols;
-    uchar intensity = 0;
-
-    for(int i=0; i<maxRows; i++) {
-        uchar *pixel= imgRoi.ptr<uchar>(i); //point to first pixel in row
-        for(int j=0; j<maxCols; j++) {
-            intensity = pixel[j];
-            if( intensity == 255 ) { //It's white
-                cv::Rect rect;
-                cv::floodFill(imgRoi, cv::Point(j, i), cv::Scalar(count), &rect, 0, 0, 4);
-                qDebug() << "width: " << rect.width <<" height: " << rect.height;
-                count ++;
-            }//End if
-        }//End for
-    }//End for i
-    */
-
-    //qDebug() << count;
-
-    //imwrite("imgRoi-FloodFill.jpg", imgRoi);
-    //qDebug() << "Saved imgRoi to: imgRoi-FloodFill.jpg";
-    imwrite("imgOccupied.jpg", this->imgOccupied);
-    qDebug() << "Saved imgOccupied to: imgOccupied.jpg";
 
     return 0;
 }
@@ -134,9 +100,6 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
 
     //store the original roi colored, to redraw circle if needed
     imgRoiColor.copyTo(this->imgColorOriginal);
-
-    this->foundColonies = 0; //reset
-    this->imgOccupied = cv::Mat(imgRoi.rows, imgRoi.cols, CV_8UC1, cv::Scalar(0, 0, 0));
 
     //int edgeThresh = 1;
     int cannyThreshold = 100; //no real differences between threshold values, because of just two colors (black and white)
@@ -151,6 +114,67 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
 
     cv::findContours(cannyOutput, this->contours, this->hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
+    analyseContours(imgRoiColor);
+
+    imgRoiColor.copyTo(this->imgColor);
+
+    return;
+}
+
+void CellCounter::analyseBlobsAlternative(cv::Mat imgRoi)
+{
+    cv::Mat imgRoiColor;
+    cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2BGR);
+
+    //store the original roi colored, to redraw circle if needed
+    imgRoiColor.copyTo(this->imgColorOriginal);
+
+    //Extract edges with laplacian
+    cv::Mat tempImgRoi;
+    imgRoi.copyTo(tempImgRoi);
+
+    cv::Laplacian(imgRoi, imgRoi, 0, 5);
+
+
+    //dilate
+    cv::dilate(imgRoi, imgRoi, cv::Mat());
+
+    //subtract images
+    cv::Mat imgRoiDiff = imgRoi - tempImgRoi;
+
+    //get contours
+    //cv::findContours(imgRoiDiff.clone(), this->contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+    cv::findContours(imgRoiDiff, this->contours, this->hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+    /*double minArea = this->minRadius;
+    double minCircleRatio = 0.1;
+    for(unsigned int i=0; i<this->contours.size(); ++i)
+    {
+        double cArea = cv::contourArea(this->contours[i]);
+        if(cArea < minArea) continue;
+
+        //filteredContours.push_back(contours[i]);
+        //cv::drawContours(input, contours, i, cv::Scalar(0,255,0), 1);
+        cv::Point2f center;
+        float radius;
+        cv::minEnclosingCircle(this->contours[i], center, radius);
+
+        double circleArea = radius*radius*CV_PI;
+
+        if(cArea/circleArea < minCircleRatio) continue;
+
+        //cv::circle(imgRoiColor, center, radius, cv::Scalar(0,0,255),2);
+    }*/
+    this->analyseContours(imgRoiColor);
+
+    imgRoiColor.copyTo(this->imgColor);
+    cv::imwrite("2_imgRoiColor.jpg", imgRoiColor);
+
+    return;
+}
+
+void CellCounter::analyseContours(cv::Mat imgRoiColor)
+{
     for(std::vector<cv::Point> contour: this->contours) {
         //calculate the mean/center point
         cv::Point sumPoint = std::accumulate(contour.begin(), contour.end(), cv::Point(0, 0));
@@ -268,69 +292,6 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
         }
 
     }
-
-    imgRoiColor.copyTo(this->imgColor);
-
-    //qDebug() << "Colonies found: " << this->foundColonies;
-    //cv::imwrite("imgRoiColor.jpg", imgRoiColor);
-
-    return;
-}
-
-void CellCounter::analyseBlobsAlternative(cv::Mat imgRoi)
-{
-    cv::Mat imgRoiColor;
-    cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2BGR);
-
-    //store the original roi colored, to redraw circle if needed
-    imgRoiColor.copyTo(this->imgColorOriginal);
-
-    //Extract edges with laplacian
-    cv::Mat tempImgRoi;
-    imgRoi.copyTo(tempImgRoi);
-
-    cv::Laplacian(imgRoi, imgRoi, 0, 5);
-
-
-    //dilate
-    cv::dilate(imgRoi, imgRoi, cv::Mat());
-
-    //subtract images
-    cv::Mat imgRoiDiff = imgRoi - tempImgRoi;
-
-    //get contours
-    std::vector<std::vector<cv::Point> > contours;
-    cv::findContours(imgRoiDiff.clone(), contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
-
-    double minArea = this->minRadius;
-    double minCircleRatio = 0.1;
-    for(unsigned int i=0; i<contours.size(); ++i)
-    {
-        double cArea = cv::contourArea(contours[i]);
-        if(cArea < minArea) continue;
-
-        //filteredContours.push_back(contours[i]);
-        //cv::drawContours(input, contours, i, cv::Scalar(0,255,0), 1);
-        cv::Point2f center;
-        float radius;
-        cv::minEnclosingCircle(contours[i], center, radius);
-
-        double circleArea = radius*radius*CV_PI;
-
-        if(cArea/circleArea < minCircleRatio) continue;
-
-        cv::circle(imgRoiColor, center, radius, cv::Scalar(0,0,255),2);
-    }
-
-    this->foundColonies = 0; //reset
-
-    cv::imwrite("imgRoi.jpg", imgRoi);
-    cv::imwrite("imgRoiDiff.jpg", imgRoiDiff);
-    cv::imwrite("imgRoiColor.jpg", imgRoiColor);
-
-    imgRoiColor.copyTo(this->imgColor);
-
-    return;
 }
 
 bool CellCounter::isSpaceAlreadyOccupied(cv::Point meanPoint, int meanRadius)
