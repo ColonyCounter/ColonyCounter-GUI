@@ -26,7 +26,6 @@ void MainWindow::on_actionLoad_Image_triggered()
         Cells.thresholdTypeChanged(BINARY_INVERTED);
         Cells.thresholdValueChanged(THRESHOLD_VALUE);
 
-        this->showColored = false;
         ui->countCellsLabel->setText("Found colonies: 0");
         updateImgLabel();
     }
@@ -333,7 +332,10 @@ void MainWindow::on_actionE_coli_triggered()
     this->cascadeClassifierType = E_COLI;
     ui->moduleUsedLabel->setText(E_COLI);
 
+    this->showColored = true;
+
     this->disableWidgets();
+    this->updateImgLabel();
 }
 
 void MainWindow::on_actionStandard_module_triggered()
@@ -342,7 +344,10 @@ void MainWindow::on_actionStandard_module_triggered()
     this->activeModule = standard;
     ui->moduleUsedLabel->setText("Standard");
 
+    this->showColored = false;
+
     this->enableWidgets();
+    this->updateImgLabel();
 }
 
 void MainWindow::on_actionSingle_colonies_triggered()
@@ -351,11 +356,63 @@ void MainWindow::on_actionSingle_colonies_triggered()
     this->activeModule = single;
     ui->moduleUsedLabel->setText("Single colonies");
 
+    this->showColored = false;
+
     this->enableWidgets();
+    this->updateImgLabel();
 }
 
 void MainWindow::on_add_deleteColoniesButton_clicked()
 {
     //Swap it
     this->editColonies = !(this->editColonies);
+}
+
+void MainWindow::on_actionWatershed_triggered()
+{
+    this->useCascadeClassifier = false;
+    this->activeModule = watershed;
+    ui->moduleUsedLabel->setText("Watershed");
+
+    this->showColored = true;
+
+    this->disableWidgets();
+    this->updateImgLabel();
+}
+
+void MainWindow::on_actionSettings_triggered()
+{
+    this->settingsDialog = new Settings(this);
+
+    connect(this->settingsDialog, SIGNAL(newSpValue(double)), this, SLOT(sp_valueChanged(double)));
+    connect(this->settingsDialog, SIGNAL(newSrValue(double)), this, SLOT(sr_valueChanged(double)));
+    connect(this->settingsDialog, SIGNAL(finished(void)), this, SLOT(finishedSettings()));
+
+    this->settingsDialog->show();
+}
+
+void MainWindow::sp_valueChanged(double newValue)
+{
+    qDebug() << "New sp value: " << newValue;
+    Cells.spChanged(newValue);
+
+    return;
+}
+
+void MainWindow::sr_valueChanged(double newValue)
+{
+    qDebug() << "New sr value: " << newValue;
+    Cells.srChanged(newValue);
+
+    return;
+}
+
+void MainWindow::finishedSettings(void)
+{
+    Cells.make_pyrMeanShiftFiltering();
+    updateImgLabel();
+
+    qDebug() << "Finished settings";
+
+    return;
 }

@@ -23,14 +23,17 @@ LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lope
 SOURCES += main.cpp\
     mainwindow.cpp \
     picam.cpp \
-    lib/cellcounter.cpp
+    lib/cellcounter.cpp \
+    settings.cpp
 
 HEADERS  += mainwindow.h \
     defines.h \
     picam.h \
-    lib/cellcounter.h
+    lib/cellcounter.h \
+    settings.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    settings.ui
 
 DISTFILES += \
     to-do.txt \

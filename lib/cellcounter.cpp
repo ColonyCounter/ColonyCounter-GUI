@@ -19,8 +19,13 @@ int CellCounter::loadImage(QString fileName)
         return 0;
     }
 
-    cv::cvtColor(this->imgOriginal, this->imgOriginal, CV_RGB2BGR); //Qt uses RGB and opencv BGR
-    cv::cvtColor(imgOriginal, imgGray, CV_BGR2GRAY); //imgGray should not be changes, it's the original image but gray
+    cv::cvtColor(this->imgOriginal, this->imgColor, CV_RGB2BGR); //Qt uses RGB and opencv BGR
+    cv::cvtColor(this->imgOriginal, this->imgGray, CV_BGR2GRAY); //imgGray should not be changes, it's the original image but gray
+
+    //Currently testing, maybe heat maps show some itneresting features
+    cv::Mat tempImg;
+    cv::applyColorMap(this->imgOriginal, tempImg, cv::COLORMAP_JET);
+    cv::imwrite("colored_heatmap.jpg", tempImg);
 
     return 1;
 }
@@ -32,8 +37,6 @@ void CellCounter::thresholdValueChanged(int thresholdValueArg)
     cv::equalizeHist( this->imgGray, this->imgGray );
 
     cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
-
-    imgQ = QImage((uchar*) img.data, img.cols, img.rows, img.step, QImage::Format_Indexed8);
     return;
 }
 
@@ -44,7 +47,26 @@ void CellCounter::thresholdTypeChanged(int thresholdTypeArg)
     cv::equalizeHist( this->imgGray, this->imgGray );
     cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
 
-    imgQ = QImage((uchar*) img.data, img.cols, img.rows, img.step, QImage::Format_Indexed8);
+    return;
+}
+
+void CellCounter::spChanged(double newValue)
+{
+    this->sp = newValue;
+    return;
+}
+
+void CellCounter::srChanged(double newValue)
+{
+    this->sr = newValue;
+    return;
+}
+
+void CellCounter::make_pyrMeanShiftFiltering(void)
+{
+    //cv::equalizeHist( this->imgOriginal, this->imgColor );
+    cv::pyrMeanShiftFiltering(this->imgColor, this->imgColor, this->sp, this->sr);
+
     return;
 }
 
@@ -63,13 +85,15 @@ int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize
 
     //BINARY_INVERTED if colonies are darker than background, BINARY otherwise
     //Change img to BINARY_INVERTED
-    if(this->thresholdType == BINARY_INVERTED) {
+    /*if(this->thresholdType == BINARY_INVERTED) {
         cv::threshold(this->imgGray, this->img, this->thresholdValue, 255, BINARY_INVERTED);
     }
     else {
         //use BINARY if user defined so
         cv::threshold(this->imgGray, this->img, this->thresholdValue, 255, BINARY);
-    }
+    }*/
+    //Checking if other threshold types are better than BINARY and BINARY_INVERTED
+    cv::threshold(this->imgGray, this->img, this->thresholdValue, 255, this->thresholdType); //so user decide the threshold type
 
     //Create mask of petri dish
     cv::Mat mask = cv::Mat::zeros(this->img.rows, this->img.cols, CV_8UC1);
@@ -86,11 +110,16 @@ int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize
     if( activeModule == single ) {
         this->analyseBlobsAlternative(imgRoi);
     }
+    else if(activeModule == watershed) {
+        this->imgOriginal.copyTo(imgRoiTemp, mask);
+        cv::Mat imgRoiColor(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
+        this->analyseBlobsWatershed(imgRoiColor);
+    }
     else {
         this->analyseBlobs(imgRoi);
     }
 
-    return 0;
+    return 0; //number of found colonies is retrieved with return_numberOfColonies function
 }
 
 void CellCounter::analyseBlobs(cv::Mat imgRoi)
@@ -169,6 +198,54 @@ void CellCounter::analyseBlobsAlternative(cv::Mat imgRoi)
 
     imgRoiColor.copyTo(this->imgColor);
     cv::imwrite("2_imgRoiColor.jpg", imgRoiColor);
+
+    return;
+}
+
+void CellCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
+{
+    //http://docs.opencv.org/3.1.0/d2/dbd/tutorial_distance_transform.html#gsc.tab=0
+
+    //http://docs.opencv.org/3.1.0/d3/db4/tutorial_py_watershed.html#gsc.tab=0
+
+    //http://www.pyimagesearch.com/2015/11/02/watershed-opencv/
+    cv::Mat shiftedImg;
+    cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, 21.0, 51.0); //values may need to be changed
+
+    cv::imwrite("0_imgRoiColor.jpg", imgRoiColor);
+    cv::imwrite("1_shiftedImg.jpg", shiftedImg);
+
+    cv::Mat grayImg;
+
+    cv::cvtColor(shiftedImg, grayImg, CV_BGR2GRAY);
+    cv::imwrite("2_gray.jpg", grayImg);
+
+    //cv::Mat threshImg;
+    //cv::threshold(grayImg, threshImg, this->thresholdValue, 255, this->thresholdType); //not working, trehshold value nneds to be changed here
+    //cv::imwrite("3_grayThreshold.jpg", threshImg);
+
+    cv::findContours(grayImg, this->contours, this->hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+    qDebug() << "Found " << this->contours.size() << " contours";
+
+    std::vector<std::vector<cv::Point> > contours_poly( this->contours.size() );
+    std::vector<cv::Point2f>center( this->contours.size() );
+    std::vector<float>radius( this->contours.size() );
+
+    for(unsigned int i = 0; i < contours.size(); i++){
+        cv::approxPolyDP((cv::Mat)this->contours[i], contours_poly[i], 3, true);
+        cv::minEnclosingCircle((cv::Mat)contours_poly[i], center[i], radius[i]);
+    }
+
+    cv::Mat contoursImg = cv::Mat::zeros( grayImg.size(), CV_8UC3 );
+    cv::RNG rng(12345);
+    for(unsigned int i = 0; i < contours.size(); i++) {
+        cv::Scalar color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255));
+        cv::drawContours(contoursImg, contours_poly, i, color, 1, 8, this->hierarchy, 0, cv::Point());
+        cv::circle(contoursImg, center[i], (int)radius[i], color, 2, 8, 0);
+    }
+    cv::imwrite("4_contours.jpg", contoursImg);
+
+    qDebug() << "Finished watersheed";
 
     return;
 }
@@ -568,6 +645,7 @@ QString CellCounter::return_imgPath(void)
 
 QImage CellCounter::return_imgQ(void)
 {
+    imgQ = QImage((uchar*) img.data, img.cols, img.rows, img.step, QImage::Format_Indexed8);
     return this->imgQ;
 }
 

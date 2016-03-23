@@ -22,6 +22,7 @@ struct point_radius {
 enum analyseModule {
     standard,
     single,
+    watershed,
     cascade
 };
 
@@ -43,11 +44,18 @@ private:
     //User defined values
     int thresholdValue = 1;
     int thresholdType = BINARY_INVERTED;
+
+    //for pyrMeanShiftFiltering
+    double sp = 20.0; //sp – The spatial window radius.
+    double sr = 50.0; //sr – The color window radius.
+
     float minContourSize = 4.0;
     float minRadius = 0.1;
     float maxRadius = 10;
+
     float thresholdRadiusMin = 0.5;
     float thresholdRadiusMax = 0.5;
+
     int drawCircleSize = 5;
     float minCircleRatio = 1.0;
     float maxCircleRatio = 5.0;
@@ -69,9 +77,14 @@ public:
     int loadImage(QString);
     void thresholdValueChanged(int);
     void thresholdTypeChanged(int);
+    void spChanged(double);
+    void srChanged(double);
+    void make_pyrMeanShiftFiltering(void);
+
     int countColoniesStandard(QPoint, int, QSize, analyseModule);
     void analyseBlobs(cv::Mat);
     void analyseBlobsAlternative(cv::Mat);
+    void analyseBlobsWatershed(cv::Mat);
     void analyseContours(cv::Mat imgRoiColor);
     bool isSpaceAlreadyOccupied(cv::Point, int);
     int countColoniesCascade(QPoint, int, QSize, QString);

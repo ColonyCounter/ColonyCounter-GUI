@@ -19,6 +19,8 @@
 
 #include <QDebug>
 
+#include "settings.h"
+
 #include "defines.h"
 #include "lib/cellcounter.h"
 #include "picam.h"
@@ -61,8 +63,12 @@ private slots:
     void on_minContourSizeSpin_valueChanged(int);
     void on_minPcaRatioSpin_valueChanged(double);
     void on_maxPcaRatioSpin_valueChanged(double);
-    void on_minRadiusSpin_valueChanged(double arg1);
-    void on_maxRadiusSpin_valueChanged(double arg1);
+    void on_minRadiusSpin_valueChanged(double);
+    void on_maxRadiusSpin_valueChanged(double);
+
+    void sp_valueChanged(double);
+    void sr_valueChanged(double);
+    void finishedSettings(void);
 
     void disableWidgets(void);
     void enableWidgets(void);
@@ -70,14 +76,17 @@ private slots:
     void on_actionStandard_module_triggered();
 
     void on_add_deleteColoniesButton_clicked();
-
     void on_actionSingle_colonies_triggered();
+    void on_actionWatershed_triggered();
+    void on_actionSettings_triggered();
 
 protected:
 
 private:
     Ui::MainWindow *ui;
     QGraphicsScene *scene = new QGraphicsScene(this);
+    Settings *settingsDialog;
+
     QPixmap pixmapImg;
     QFutureWatcher<int> *watcher;
     analyseModule activeModule = standard;

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>702</width>
-    <height>698</height>
+    <width>663</width>
+    <height>760</height>
    </rect>
   </property>
   <property name="cursor">
@@ -17,209 +17,7 @@
    <string>ColonyCounter</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="19" column="1">
-     <widget class="QPushButton" name="countCellsButton">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Count Colonies</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLabel" name="thresholdValueLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Threshold Value</string>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="1">
-     <widget class="QLabel" name="maxPcaRatioLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Max. PCA ratio</string>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="1">
-     <widget class="QDoubleSpinBox" name="maxPcaRatioSpin">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="maximum">
-       <double>100.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.250000000000000</double>
-      </property>
-      <property name="value">
-       <double>5.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="22" column="1" rowspan="8">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="14" column="1">
-     <widget class="QLabel" name="maxRadiusLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Max. radius</string>
-      </property>
-     </widget>
-    </item>
-    <item row="15" column="1">
-     <widget class="QDoubleSpinBox" name="maxRadiusSpin">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="maximum">
-       <double>100.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.250000000000000</double>
-      </property>
-      <property name="value">
-       <double>5.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
-     <widget class="QLabel" name="thresholdTypeLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Threshold Type</string>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="1">
-     <widget class="QLabel" name="minPcaRatioLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Min. PCA ratio</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="1">
-     <widget class="QComboBox" name="thresholdTypeBox">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="currentIndex">
-       <number>1</number>
-      </property>
-      <item>
-       <property name="text">
-        <string>Binary</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Binary Inverted</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Truncate</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>To Zero</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>To Zero Inverted</string>
-       </property>
-      </item>
-     </widget>
-    </item>
-    <item row="7" column="1">
-     <widget class="QSpinBox" name="minContourSizeSpin">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="maximum">
-       <number>20</number>
-      </property>
-      <property name="value">
-       <number>4</number>
-      </property>
-     </widget>
-    </item>
-    <item row="13" column="1">
-     <widget class="QDoubleSpinBox" name="minRadiusSpin">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="maximum">
-       <double>100.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.250000000000000</double>
-      </property>
-      <property name="value">
-       <double>1.000000000000000</double>
-      </property>
-     </widget>
-    </item>
+   <layout class="QGridLayout" name="gridLayout_3">
     <item row="0" column="1">
      <widget class="QLabel" name="moduleUsedLabel">
       <property name="sizePolicy">
@@ -233,65 +31,301 @@
       </property>
      </widget>
     </item>
-    <item row="12" column="1">
-     <widget class="QLabel" name="minRadiusLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
+    <item row="1" column="1">
+     <widget class="QPushButton" name="chooseCircleButton">
       <property name="text">
-       <string>Min. radius</string>
+       <string>Choose petri dish</string>
       </property>
      </widget>
     </item>
     <item row="3" column="1">
-     <widget class="QSpinBox" name="thresholdValueSpin">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="maximum">
-       <number>255</number>
-      </property>
-      <property name="value">
-       <number>70</number>
-      </property>
-     </widget>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="countCellsLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Colonies found: 0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="countCellsButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Count Colonies</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="add_deleteColoniesButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Add/Delete Colonies</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="17" column="1">
-     <widget class="QLabel" name="countCellsLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Colonies found: 0</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
+    <item row="2" column="1">
+     <layout class="QGridLayout" name="standardGrid">
+      <item row="4" column="0">
+       <widget class="QLabel" name="minContourSizeLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Min. Contour Size</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="0">
+       <widget class="QDoubleSpinBox" name="maxRadiusSpin">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.250000000000000</double>
+        </property>
+        <property name="value">
+         <double>5.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="maxRadiusLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Max. radius</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QSpinBox" name="thresholdValueSpin">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximum">
+         <number>255</number>
+        </property>
+        <property name="value">
+         <number>70</number>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="minPcaRatioLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Min. PCA ratio</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
+       <widget class="QLabel" name="minRadiusLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Min. radius</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QDoubleSpinBox" name="maxPcaRatioSpin">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.250000000000000</double>
+        </property>
+        <property name="value">
+         <double>5.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="thresholdTypeLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Threshold Type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QSpinBox" name="minContourSizeSpin">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximum">
+         <number>20</number>
+        </property>
+        <property name="value">
+         <number>4</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QComboBox" name="thresholdTypeBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>Binary</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Binary Inverted</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Truncate</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>To Zero</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>To Zero Inverted</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="maxPcaRatioLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Max. PCA ratio</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QDoubleSpinBox" name="minPcaRatioSpin">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.250000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QDoubleSpinBox" name="minRadiusSpin">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.250000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="thresholdValueLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Threshold Value</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="6" column="1">
-     <widget class="QLabel" name="minContourSizeLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Min. Contour Size</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0" rowspan="31">
+    <item row="0" column="0" rowspan="4">
      <widget class="QLabel" name="imgLabel">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -304,73 +338,31 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QPushButton" name="chooseCircleButton">
-      <property name="text">
-       <string>Choose petri dish</string>
+    <item row="4" column="1">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
       </property>
-     </widget>
-    </item>
-    <item row="9" column="1">
-     <widget class="QDoubleSpinBox" name="minPcaRatioSpin">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
       </property>
-      <property name="maximum">
-       <double>10.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.250000000000000</double>
-      </property>
-      <property name="value">
-       <double>1.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="20" column="1">
-     <widget class="QPushButton" name="add_deleteColoniesButton">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Add/Delete Colonies</string>
-      </property>
-     </widget>
+     </spacer>
     </item>
    </layout>
-   <zorder>countCellsButton</zorder>
-   <zorder>thresholdTypeLabel</zorder>
-   <zorder>thresholdValueSpin</zorder>
-   <zorder>minRadiusSpin</zorder>
-   <zorder>maxRadiusSpin</zorder>
-   <zorder>maxPcaRatioSpin</zorder>
-   <zorder>minPcaRatioSpin</zorder>
-   <zorder>thresholdTypeBox</zorder>
-   <zorder>thresholdValueLabel</zorder>
-   <zorder>minPcaRatioLabel</zorder>
-   <zorder>minContourSizeLabel</zorder>
    <zorder>chooseCircleButton</zorder>
-   <zorder>maxRadiusLabel</zorder>
-   <zorder>minRadiusLabel</zorder>
-   <zorder>countCellsLabel</zorder>
-   <zorder>minContourSizeSpin</zorder>
-   <zorder>maxPcaRatioLabel</zorder>
    <zorder>moduleUsedLabel</zorder>
    <zorder>imgLabel</zorder>
-   <zorder>add_deleteColoniesButton</zorder>
+   <zorder>verticalSpacer</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>702</width>
+     <width>663</width>
      <height>26</height>
     </rect>
    </property>
@@ -390,11 +382,13 @@
      </widget>
      <addaction name="actionStandard_module"/>
      <addaction name="actionSingle_colonies"/>
+     <addaction name="actionWatershed"/>
      <addaction name="menuCascade"/>
     </widget>
     <addaction name="actionLoad_Image"/>
     <addaction name="menuChange_module"/>
     <addaction name="actionUse_Pi_Camera"/>
+    <addaction name="actionSettings"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
@@ -430,6 +424,16 @@
   <action name="actionSingle_colonies">
    <property name="text">
     <string>single colonies</string>
+   </property>
+  </action>
+  <action name="actionWatershed">
+   <property name="text">
+    <string>watershed</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>
