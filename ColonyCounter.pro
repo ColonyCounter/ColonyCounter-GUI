@@ -37,4 +37,4 @@ FORMS    += mainwindow.ui \
 
 DISTFILES += \
     to-do.txt \
-    to-do.txt
+    LICENSE
