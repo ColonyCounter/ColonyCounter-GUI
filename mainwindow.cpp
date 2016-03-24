@@ -108,7 +108,7 @@ void MainWindow::on_countCellsButton_clicked()
         //Start new thread to run countCells function, otherwise GUI freezes
         this->watcher = new QFutureWatcher<int>;
         connect(this->watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
-        this->watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColoniesCascade, this->circleCenter, this->circleRadius, this->pixmapSize, this->cascadeClassifierType));
+        this->watcher->setFuture(QtConcurrent::run(&Cells, &ColonyCounter::countColoniesCascade, this->circleCenter, this->circleRadius, this->pixmapSize, this->cascadeClassifierType));
     }
     else {
         qDebug() << "Use standard module for counting.";
@@ -116,7 +116,7 @@ void MainWindow::on_countCellsButton_clicked()
         //Start new thread to run countCells function, otherwise GUI freezes
         this->watcher = new QFutureWatcher<int>;
         connect(this->watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
-        this->watcher->setFuture(QtConcurrent::run(&Cells, &CellCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize, this->activeModule));
+        this->watcher->setFuture(QtConcurrent::run(&Cells, &ColonyCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize, this->activeModule));
     }
 
     //Add check: if return value is < 0 -> there was an error: check qDebug() and display Error message

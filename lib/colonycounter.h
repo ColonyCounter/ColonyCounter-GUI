@@ -1,5 +1,5 @@
-#ifndef CELLCOUNTER_H
-#define CELLCOUNTER_H
+#ifndef COLONYCOUNTER_H
+#define COLONYCOUNTER_H
 
 #include <QtGlobal>
 #include <QString>
@@ -31,7 +31,7 @@ typedef enum analyseModule analyseModule;
 typedef struct point_radius point_radius;
 
 
-class CellCounter
+class ColonyCounter
 {
 private:
     cv::Mat imgOriginal, imgGray, img, imgColorOriginal, imgColor, imgOccupied;
@@ -73,7 +73,7 @@ private:
 protected:
 
 public:
-    CellCounter();
+    ColonyCounter();
     int loadImage(QString);
     void thresholdValueChanged(int);
     void thresholdTypeChanged(int);
@@ -110,4 +110,4 @@ public:
     int return_numberOfColonies(void);
 };
 
-#endif // CELLCOUNTER_H
+#endif // COLONYCOUNTER_H

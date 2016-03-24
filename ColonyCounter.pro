@@ -23,14 +23,14 @@ LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lope
 SOURCES += main.cpp\
     mainwindow.cpp \
     picam.cpp \
-    lib/cellcounter.cpp \
-    settings.cpp
+    settings.cpp \
+    lib/colonycounter.cpp
 
 HEADERS  += mainwindow.h \
     defines.h \
     picam.h \
-    lib/cellcounter.h \
-    settings.h
+    settings.h \
+    lib/colonycounter.h
 
 FORMS    += mainwindow.ui \
     settings.ui

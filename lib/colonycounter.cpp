@@ -1,11 +1,11 @@
-#include "cellcounter.h"
+#include "colonycounter.h"
 
-CellCounter::CellCounter()
+ColonyCounter::ColonyCounter()
 {
 
 }
 
-int CellCounter::loadImage(QString fileName)
+int ColonyCounter::loadImage(QString fileName)
 {
     if( fileName.isEmpty() ) {
         qWarning("f: Opening image was cancelled.");
@@ -30,7 +30,7 @@ int CellCounter::loadImage(QString fileName)
     return 1;
 }
 
-void CellCounter::thresholdValueChanged(int thresholdValueArg)
+void ColonyCounter::thresholdValueChanged(int thresholdValueArg)
 {
     //Save value and update image
     this->thresholdValue = thresholdValueArg;
@@ -41,7 +41,7 @@ void CellCounter::thresholdValueChanged(int thresholdValueArg)
     return;
 }
 
-void CellCounter::thresholdTypeChanged(int thresholdTypeArg)
+void ColonyCounter::thresholdTypeChanged(int thresholdTypeArg)
 {
     //Save type and update image
     this->thresholdType = thresholdTypeArg;
@@ -52,19 +52,19 @@ void CellCounter::thresholdTypeChanged(int thresholdTypeArg)
     return;
 }
 
-void CellCounter::spChanged(double newValue)
+void ColonyCounter::spChanged(double newValue)
 {
     this->sp = newValue;
     return;
 }
 
-void CellCounter::srChanged(double newValue)
+void ColonyCounter::srChanged(double newValue)
 {
     this->sr = newValue;
     return;
 }
 
-void CellCounter::make_pyrMeanShiftFiltering(void)
+void ColonyCounter::make_pyrMeanShiftFiltering(void)
 {
     //cv::equalizeHist( this->imgOriginal, this->imgColor );
     cv::pyrMeanShiftFiltering(this->imgColor, this->imgColor, this->sp, this->sr);
@@ -72,7 +72,7 @@ void CellCounter::make_pyrMeanShiftFiltering(void)
     return;
 }
 
-int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize pixmapSize, analyseModule activeModule)
+int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize pixmapSize, analyseModule activeModule)
 {
     qDebug() << "Starting counting colonies on: " << this->return_imgPath();
 
@@ -124,7 +124,7 @@ int CellCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize
     return 0; //number of found colonies is retrieved with return_numberOfColonies function
 }
 
-void CellCounter::analyseBlobs(cv::Mat imgRoi)
+void ColonyCounter::analyseBlobs(cv::Mat imgRoi)
 {
     cv::Mat imgRoiColor;
     cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2BGR);
@@ -152,7 +152,7 @@ void CellCounter::analyseBlobs(cv::Mat imgRoi)
     return;
 }
 
-void CellCounter::analyseBlobsAlternative(cv::Mat imgRoi)
+void ColonyCounter::analyseBlobsAlternative(cv::Mat imgRoi)
 {
     cv::Mat imgRoiColor;
     cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2BGR);
@@ -204,7 +204,7 @@ void CellCounter::analyseBlobsAlternative(cv::Mat imgRoi)
     return;
 }
 
-void CellCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
+void ColonyCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
 {
     //Not really promising right know
     //http://docs.opencv.org/3.1.0/d2/dbd/tutorial_distance_transform.html#gsc.tab=0
@@ -251,7 +251,7 @@ void CellCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
     return;
 }
 
-void CellCounter::analyseContours(cv::Mat imgRoiColor)
+void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
 {
     for(std::vector<cv::Point> contour: this->contours) {
         //calculate the mean/center point
@@ -391,7 +391,7 @@ void CellCounter::analyseContours(cv::Mat imgRoiColor)
 
 }
 
-bool CellCounter::isSpaceAlreadyOccupied(cv::Point meanPoint, int meanRadius)
+bool ColonyCounter::isSpaceAlreadyOccupied(cv::Point meanPoint, int meanRadius)
 {
     //check if already a colony is nearby -> probably same colony
     //check not all pixels, just a few along the radius and different angles
@@ -421,7 +421,7 @@ bool CellCounter::isSpaceAlreadyOccupied(cv::Point meanPoint, int meanRadius)
     return false;
 }
 
-int CellCounter::countColoniesCascade(QPoint circleCenter, int circleRad, QSize pixmapSize, QString organism)
+int ColonyCounter::countColoniesCascade(QPoint circleCenter, int circleRad, QSize pixmapSize, QString organism)
 {
     qDebug() << "Using cascade";
     qDebug() << "Organism" << organism;
@@ -447,7 +447,7 @@ int CellCounter::countColoniesCascade(QPoint circleCenter, int circleRad, QSize 
     return foundColonies;
 }
 
-int CellCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCascade)
+int ColonyCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCascade)
 {
     int foundColonies = 0;
     // Reset the vectors to start again
@@ -477,7 +477,7 @@ int CellCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCascad
     return foundColonies;
 }
 
-void CellCounter::calculateCircleCenterAndRadius(QPoint circleCenter, int circleRad, QSize pixmapSize, cv::Mat imgOrig)
+void ColonyCounter::calculateCircleCenterAndRadius(QPoint circleCenter, int circleRad, QSize pixmapSize, cv::Mat imgOrig)
 {
     //Recalculate factor for radius and circleCenter
     float factorWidth = (float) imgOrig.cols / pixmapSize.width();
@@ -496,7 +496,7 @@ void CellCounter::calculateCircleCenterAndRadius(QPoint circleCenter, int circle
     return;
 }
 
-int CellCounter::isCircle(std::vector<cv::Point> &data)
+int ColonyCounter::isCircle(std::vector<cv::Point> &data)
 {
     cv::Mat dataBuffer = cv::Mat(data.size(), 2, CV_32F);
     for(int i = 0; i < dataBuffer.rows; i++) {
@@ -517,7 +517,7 @@ int CellCounter::isCircle(std::vector<cv::Point> &data)
     return 1;
 }
 
-std::vector<std::vector<cv::Point>> CellCounter::seperateColonies(std::vector<cv::Point> &data, int k)
+std::vector<std::vector<cv::Point>> ColonyCounter::seperateColonies(std::vector<cv::Point> &data, int k)
 {
     //Set k-means criteria
     cv::TermCriteria kCriteria = cv::TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 1000, 0.1);
@@ -564,7 +564,7 @@ unsigned int root(unsigned int x)
     return(x);
 }
 
-void CellCounter::drawCircles()
+void ColonyCounter::drawCircles()
 {
     this->imgColorOriginal.copyTo(this->imgColor);
 
@@ -575,7 +575,7 @@ void CellCounter::drawCircles()
     return;
 }
 
-void CellCounter::addCircle(QPoint cursorPoint, QSize pixmapSize)
+void ColonyCounter::addCircle(QPoint cursorPoint, QSize pixmapSize)
 {
     int radius = (this->minRadius+this->maxRadius)/2;
     this->calculateCircleCenterAndRadius(cursorPoint, radius, pixmapSize, this->imgColor);
@@ -595,7 +595,7 @@ void CellCounter::addCircle(QPoint cursorPoint, QSize pixmapSize)
     return;
 }
 
-void CellCounter::removeCircle(QPoint cursorPoint, QSize pixmapSize)
+void ColonyCounter::removeCircle(QPoint cursorPoint, QSize pixmapSize)
 {
     int nearestPoint = -1;
     this->calculateCircleCenterAndRadius(cursorPoint, this->maxRadius, pixmapSize, this->imgColor);
@@ -628,55 +628,55 @@ void CellCounter::removeCircle(QPoint cursorPoint, QSize pixmapSize)
     }
 }
 
-void CellCounter::set_contourSize(int newSize)
+void ColonyCounter::set_contourSize(int newSize)
 {
     this->minContourSize = newSize;
 }
 
-void CellCounter::set_minRadius(double newRadius)
+void ColonyCounter::set_minRadius(double newRadius)
 {
     this->minRadius = (float) newRadius;
 }
 
-void CellCounter::set_maxRadius(double newRadius)
+void ColonyCounter::set_maxRadius(double newRadius)
 {
     this->maxRadius = (float) newRadius;
 }
 
-void CellCounter::set_minCircleRatio(double newRatio)
+void ColonyCounter::set_minCircleRatio(double newRatio)
 {
     this->minCircleRatio = (float) newRatio;
 }
 
-void CellCounter::set_maxCircleRatio(double newRatio)
+void ColonyCounter::set_maxCircleRatio(double newRatio)
 {
     this->maxCircleRatio = (float) newRatio;
 }
 
-void CellCounter::set_imgPath(QString fileName)
+void ColonyCounter::set_imgPath(QString fileName)
 {
     this->imgPath = fileName;
 }
 
-QString CellCounter::return_imgPath(void)
+QString ColonyCounter::return_imgPath(void)
 {
     return this->imgPath;
 }
 
-QImage CellCounter::return_imgQ(void)
+QImage ColonyCounter::return_imgQ(void)
 {
     imgQ = QImage((uchar*) img.data, img.cols, img.rows, img.step, QImage::Format_Indexed8);
     return this->imgQ;
 }
 
-QImage CellCounter::return_imgQColored(void)
+QImage ColonyCounter::return_imgQColored(void)
 {
     //cv::cvtColor(this->imgColor, this->imgColor, CV_RGB2BGR);//Qt uses RGB and opencv BGR but conversion was already done
     this->imgQColor = QImage((uchar*) imgColor.data, imgColor.cols, imgColor.rows, imgColor.step, QImage::Format_RGB888);
     return this->imgQColor;
 }
 
-int CellCounter::return_numberOfColonies(void)
+int ColonyCounter::return_numberOfColonies(void)
 {
     return this->acceptedColonies.size();
 }

@@ -22,10 +22,10 @@
 #include "settings.h"
 
 #include "defines.h"
-#include "lib/cellcounter.h"
+#include "lib/colonycounter.h"
 #include "picam.h"
 
-extern CellCounter Cells;
+extern ColonyCounter Cells;
 
 namespace Ui {
 class MainWindow;
