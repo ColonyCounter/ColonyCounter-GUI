@@ -21,12 +21,12 @@ void MainWindow::on_actionLoad_Image_triggered()
     QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open...", QDir::homePath());
     if( !fileName.isEmpty() ) {
         //Set standard configuration for loaded image
-        Cells.set_imgPath(fileName);
-        Cells.loadImage(fileName);
-        Cells.thresholdTypeChanged(BINARY_INVERTED);
-        Cells.thresholdValueChanged(THRESHOLD_VALUE);
+        Colonies.set_imgPath(fileName);
+        Colonies.loadImage(fileName);
+        Colonies.thresholdTypeChanged(BINARY_INVERTED);
+        Colonies.thresholdValueChanged(THRESHOLD_VALUE);
 
-        ui->countCellsLabel->setText("Found colonies: 0");
+        ui->countColoniesLabel->setText("Found colonies: 0");
         updateImgLabel();
     }
     return;
@@ -36,10 +36,10 @@ void MainWindow::updateImgLabel()
 {
     //Convert imgQ to Pixmap and display in label
     if(!this->showColored) {
-        this->pixmapImg = QPixmap::fromImage(Cells.return_imgQ(), 0);
+        this->pixmapImg = QPixmap::fromImage(Colonies.return_imgQ(), 0);
     }
     else if(this->showColored) {
-        this->pixmapImg = QPixmap::fromImage(Cells.return_imgQColored(), 0);
+        this->pixmapImg = QPixmap::fromImage(Colonies.return_imgQColored(), 0);
     }
 
     int w  = ui->imgLabel->width();
@@ -78,7 +78,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::on_thresholdValueSpin_valueChanged(int thresholdValue)
 {
-    Cells.thresholdValueChanged(thresholdValue);
+    Colonies.thresholdValueChanged(thresholdValue);
 
     this->showColored = false;
     updateImgLabel();
@@ -88,7 +88,7 @@ void MainWindow::on_thresholdValueSpin_valueChanged(int thresholdValue)
 
 void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
 {
-    Cells.thresholdTypeChanged(index);
+    Colonies.thresholdTypeChanged(index);
 
     this->showColored = false;
     updateImgLabel();
@@ -96,7 +96,7 @@ void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
     return;
 }
 
-void MainWindow::on_countCellsButton_clicked()
+void MainWindow::on_countColoniesButton_clicked()
 {
     //Disable add/delete of colonies
     this->editColonies = false;
@@ -108,7 +108,7 @@ void MainWindow::on_countCellsButton_clicked()
         //Start new thread to run countCells function, otherwise GUI freezes
         this->watcher = new QFutureWatcher<int>;
         connect(this->watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
-        this->watcher->setFuture(QtConcurrent::run(&Cells, &ColonyCounter::countColoniesCascade, this->circleCenter, this->circleRadius, this->pixmapSize, this->cascadeClassifierType));
+        this->watcher->setFuture(QtConcurrent::run(&Colonies, &ColonyCounter::countColoniesCascade, this->circleCenter, this->circleRadius, this->pixmapSize, this->cascadeClassifierType));
     }
     else {
         qDebug() << "Use standard module for counting.";
@@ -116,7 +116,7 @@ void MainWindow::on_countCellsButton_clicked()
         //Start new thread to run countCells function, otherwise GUI freezes
         this->watcher = new QFutureWatcher<int>;
         connect(this->watcher, SIGNAL(finished()), this, SLOT(finishedCounting()));
-        this->watcher->setFuture(QtConcurrent::run(&Cells, &ColonyCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize, this->activeModule));
+        this->watcher->setFuture(QtConcurrent::run(&Colonies, &ColonyCounter::countColoniesStandard, this->circleCenter, this->circleRadius, this->pixmapSize, this->activeModule));
     }
 
     //Add check: if return value is < 0 -> there was an error: check qDebug() and display Error message
@@ -128,7 +128,7 @@ void MainWindow::on_chooseCircleButton_clicked()
     this->drawCircleAllowed = true;
     this->showColored = false;
 
-    ui->countCellsLabel->setText("Found colonies: 0");
+    ui->countColoniesLabel->setText("Found colonies: 0");
     this->update();
 }
 
@@ -147,8 +147,8 @@ void MainWindow::finishedCounting()
 void MainWindow::updateFoundColoniesStr(void)
 {
     qDebug() << "Update found colonies string";
-    int colonies = Cells.return_numberOfColonies();
-    ui->countCellsLabel->setText(QString("Found colonies: %1").arg(colonies));
+    int colonies = Colonies.return_numberOfColonies();
+    ui->countColoniesLabel->setText(QString("Found colonies: %1").arg(colonies));
     this->showColored = true;
     this->updateImgLabel();
 
@@ -243,14 +243,14 @@ void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
         if( mouseEvent->buttons() == Qt::LeftButton ) {
             qDebug() << "Left mouse button pressed" << mouseEvent->pos();
             qDebug() << ui->imgLabel->pos();
-            Cells.addCircle(calculatedPosition, this->pixmapSize);
+            Colonies.addCircle(calculatedPosition, this->pixmapSize);
         }
         else if( mouseEvent->buttons() == Qt::RightButton ) {
             qDebug() << "Right mouse button pressed" << mouseEvent->pos();
             qDebug() << ui->imgLabel->pos();
-            Cells.removeCircle(calculatedPosition, this->pixmapSize);
+            Colonies.removeCircle(calculatedPosition, this->pixmapSize);
 
-            Cells.drawCircles();
+            Colonies.drawCircles();
         }
         this->updateFoundColoniesStr(); //update string of found colonies
     }
@@ -264,28 +264,28 @@ void MainWindow::updateCircle()
 
 void MainWindow::on_minContourSizeSpin_valueChanged(int newSize)
 {
-    Cells.set_contourSize(newSize);
+    Colonies.set_contourSize(newSize);
 }
 
 void MainWindow::on_minRadiusSpin_valueChanged(double newValue)
 {
-    Cells.set_minRadius((float) newValue);
+    Colonies.set_minRadius((float) newValue);
 }
 
 void MainWindow::on_maxRadiusSpin_valueChanged(double newValue)
 {
-    Cells.set_maxRadius((float) newValue);
+    Colonies.set_maxRadius((float) newValue);
 }
 
 
 void MainWindow::on_minPcaRatioSpin_valueChanged(double newValue)
 {
-    Cells.set_minCircleRatio((float) newValue);
+    Colonies.set_minCircleRatio((float) newValue);
 }
 
 void MainWindow::on_maxPcaRatioSpin_valueChanged(double newValue)
 {
-    Cells.set_maxCircleRatio((float) newValue);
+    Colonies.set_maxCircleRatio((float) newValue);
 }
 
 void MainWindow::disableWidgets(void)
@@ -394,7 +394,7 @@ void MainWindow::on_actionSettings_triggered()
 void MainWindow::sp_valueChanged(double newValue)
 {
     qDebug() << "New sp value: " << newValue;
-    Cells.spChanged(newValue);
+    Colonies.spChanged(newValue);
 
     return;
 }
@@ -402,14 +402,14 @@ void MainWindow::sp_valueChanged(double newValue)
 void MainWindow::sr_valueChanged(double newValue)
 {
     qDebug() << "New sr value: " << newValue;
-    Cells.srChanged(newValue);
+    Colonies.srChanged(newValue);
 
     return;
 }
 
 void MainWindow::finishedSettings(void)
 {
-    Cells.make_pyrMeanShiftFiltering();
+    Colonies.make_pyrMeanShiftFiltering();
     updateImgLabel();
 
     qDebug() << "Finished settings";

@@ -25,7 +25,7 @@
 #include "lib/colonycounter.h"
 #include "picam.h"
 
-extern ColonyCounter Cells;
+extern ColonyCounter Colonies;
 
 namespace Ui {
 class MainWindow;
@@ -54,7 +54,7 @@ private slots:
     void on_actionLoad_Image_triggered();
     void on_thresholdValueSpin_valueChanged(int);
     void on_thresholdTypeBox_currentIndexChanged(int);
-    void on_countCellsButton_clicked();
+    void on_countColoniesButton_clicked();
     void finishedCounting();
 
     void on_chooseCircleButton_clicked();

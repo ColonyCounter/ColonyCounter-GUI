@@ -2,7 +2,7 @@
 #include <QApplication>
 #include <QFileDialog>
 
-ColonyCounter Cells;
+ColonyCounter Colonies;
 
 int main(int argc, char *argv[])
 {
