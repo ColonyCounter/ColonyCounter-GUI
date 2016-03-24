@@ -34,9 +34,10 @@ void CellCounter::thresholdValueChanged(int thresholdValueArg)
 {
     //Save value and update image
     this->thresholdValue = thresholdValueArg;
-    cv::equalizeHist( this->imgGray, this->imgGray );
+    //cv::equalizeHist( this->imgGray, this->imgGray ); //if used good thresholdValues differs dramatically
 
     cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
+
     return;
 }
 
@@ -44,7 +45,8 @@ void CellCounter::thresholdTypeChanged(int thresholdTypeArg)
 {
     //Save type and update image
     this->thresholdType = thresholdTypeArg;
-    cv::equalizeHist( this->imgGray, this->imgGray );
+    //cv::equalizeHist( this->imgGray, this->imgGray ); //if used good thresholdValues differs dramatically
+
     cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
 
     return;
@@ -204,10 +206,9 @@ void CellCounter::analyseBlobsAlternative(cv::Mat imgRoi)
 
 void CellCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
 {
+    //Not really promising right know
     //http://docs.opencv.org/3.1.0/d2/dbd/tutorial_distance_transform.html#gsc.tab=0
-
     //http://docs.opencv.org/3.1.0/d3/db4/tutorial_py_watershed.html#gsc.tab=0
-
     //http://www.pyimagesearch.com/2015/11/02/watershed-opencv/
     cv::Mat shiftedImg;
     cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, 21.0, 51.0); //values may need to be changed
@@ -224,7 +225,7 @@ void CellCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
     //cv::threshold(grayImg, threshImg, this->thresholdValue, 255, this->thresholdType); //not working, trehshold value nneds to be changed here
     //cv::imwrite("3_grayThreshold.jpg", threshImg);
 
-    cv::findContours(grayImg, this->contours, this->hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+    cv::findContours(grayImg, this->contours, this->hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
     qDebug() << "Found " << this->contours.size() << " contours";
 
     std::vector<std::vector<cv::Point> > contours_poly( this->contours.size() );
@@ -369,6 +370,25 @@ void CellCounter::analyseContours(cv::Mat imgRoiColor)
         }
 
     }
+
+    /*std::vector<std::vector<cv::Point> > contours_poly( this->acceptedColonies.size() );
+    std::vector<cv::Point2f>center( this->acceptedColonies.size() );
+    std::vector<float>radius( this->acceptedColonies.size() );
+
+    for(unsigned int i = 0; i < acceptedColonies.size(); i++){
+        cv::approxPolyDP((cv::Mat)this->acceptedColonies[i], contours_poly[i], 3, true);
+        cv::minEnclosingCircle((cv::Mat)contours_poly[i], center[i], radius[i]);
+    }
+
+    cv::Mat contoursImg = cv::Mat::zeros( imgRoiColor.size(), CV_8UC3 );
+    cv::RNG rng(12345);
+    for(unsigned int i = 0; i < acceptedColonies.size(); i++) {
+        cv::Scalar color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255));
+        cv::drawContours(imgRoiColor, contours_poly, i, color, 1, 8, this->hierarchy, 0, cv::Point());
+        cv::circle(imgRoiColor, center[i], (int)radius[i], color, 2, 8, 0);
+    }
+    cv::imwrite("4_contours.jpg", imgRoiColor);*/
+
 }
 
 bool CellCounter::isSpaceAlreadyOccupied(cv::Point meanPoint, int meanRadius)
@@ -437,7 +457,7 @@ int CellCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCascad
     this->img.copyTo(imgResult);
 
     cv::cvtColor(this->img, imgGray, cv::COLOR_BGR2GRAY);
-    cv::equalizeHist(imgGray, imgGray);
+    //cv::equalizeHist(imgGray, imgGray);
 
     //Detect single colonies
     //LBP classifer used right know, maybe change to Haar
