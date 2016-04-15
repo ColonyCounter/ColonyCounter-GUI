@@ -23,10 +23,12 @@ void MainWindow::on_actionLoad_Image_triggered()
         //Set standard configuration for loaded image
         Colonies.set_imgPath(fileName);
         Colonies.loadImage(fileName);
-        Colonies.thresholdTypeChanged(BINARY_INVERTED);
-        Colonies.thresholdValueChanged(THRESHOLD_VALUE);
+
+        this->showColored = true;
 
         ui->countColoniesLabel->setText("Found colonies: 0");
+        ui->thresholdTypeBox->setCurrentIndex(NONE);
+
         updateImgLabel();
     }
     return;
@@ -78,6 +80,14 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::on_thresholdValueSpin_valueChanged(int thresholdValue)
 {
+    //If None is choosen show colored iamge
+    if( ui->thresholdTypeBox->currentIndex() == NONE ) {
+        this->showColored = true;
+
+        updateImgLabel();
+        return;
+    }
+
     Colonies.thresholdValueChanged(thresholdValue);
 
     this->showColored = false;
@@ -88,6 +98,14 @@ void MainWindow::on_thresholdValueSpin_valueChanged(int thresholdValue)
 
 void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
 {
+    //If None is choosen show colored iamge
+    if( index == NONE ) {
+        this->showColored = true;
+
+        updateImgLabel();
+        return;
+    }
+
     Colonies.thresholdTypeChanged(index);
 
     this->showColored = false;
@@ -126,7 +144,6 @@ void MainWindow::on_countColoniesButton_clicked()
 void MainWindow::on_chooseCircleButton_clicked()
 {
     this->drawCircleAllowed = true;
-    this->showColored = false;
 
     ui->countColoniesLabel->setText("Found colonies: 0");
     this->update();

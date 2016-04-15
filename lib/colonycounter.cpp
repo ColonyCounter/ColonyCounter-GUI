@@ -22,10 +22,7 @@ int ColonyCounter::loadImage(QString fileName)
     cv::cvtColor(this->imgOriginal, this->imgColor, CV_RGB2BGR); //Qt uses RGB and opencv BGR
     cv::cvtColor(this->imgOriginal, this->imgGray, CV_BGR2GRAY); //imgGray should not be changes, it's the original image but gray
 
-    //Currently testing, maybe heat maps show some itneresting features
-    cv::Mat tempImg;
-    cv::applyColorMap(this->imgOriginal, tempImg, cv::COLORMAP_JET);
-    cv::imwrite("colored_heatmap.jpg", tempImg);
+    this->imgColor.copyTo(this->img);
 
     return 1;
 }
