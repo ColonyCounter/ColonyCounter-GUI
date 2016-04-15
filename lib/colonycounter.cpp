@@ -82,26 +82,20 @@ int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSi
 
     this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize, this->img);
 
-    //BINARY_INVERTED if colonies are darker than background, BINARY otherwise
-    //Change img to BINARY_INVERTED
-    /*if(this->thresholdType == BINARY_INVERTED) {
-        cv::threshold(this->imgGray, this->img, this->thresholdValue, 255, BINARY_INVERTED);
-    }
-    else {
-        //use BINARY if user defined so
-        cv::threshold(this->imgGray, this->img, this->thresholdValue, 255, BINARY);
-    }*/
-    //Checking if other threshold types are better than BINARY and BINARY_INVERTED
     cv::threshold(this->imgGray, this->img, this->thresholdValue, 255, this->thresholdType); //so user decide the threshold type
 
     //Create mask of petri dish
     cv::Mat mask = cv::Mat::zeros(this->img.rows, this->img.cols, CV_8UC1);
     cv::circle(mask, this->circleCenterPoint, this->circleRadius, cv::Scalar(255, 255, 255), -1); //-1 means circle is filled, lineType=8 and shift= 0 << standard values
+
     cv::Mat imgRoiTemp;
     this->img.copyTo(imgRoiTemp, mask);
 
     //Create Region of Interest, reduzed size
     cv::Mat imgRoi(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
+
+    this->imgOriginal.copyTo(imgRoiTemp, mask);
+    cv::Mat imgRoiColor(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
 
     //Reset image to use isSpaceAlreadyOccupied()
     this->imgOccupied = cv::Mat(imgRoi.rows, imgRoi.cols, CV_8UC1, cv::Scalar(0, 0, 0));
@@ -110,24 +104,32 @@ int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSi
         this->analyseBlobsAlternative(imgRoi);
     }
     else if(activeModule == watershed) {
-        this->imgOriginal.copyTo(imgRoiTemp, mask);
-        cv::Mat imgRoiColor(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
         this->analyseBlobsWatershed(imgRoiColor);
     }
     else {
-        this->analyseBlobs(imgRoi);
+        this->analyseBlobs(imgRoiColor);
     }
 
     return 0; //number of found colonies is retrieved with return_numberOfColonies function
 }
 
-void ColonyCounter::analyseBlobs(cv::Mat imgRoi)
+void ColonyCounter::analyseBlobs(cv::Mat imgRoiColor)
 {
-    cv::Mat imgRoiColor;
-    cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2BGR);
+    //cv::Mat imgRoiColor;
+    //cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2BGR);
+
+    cv::Mat shiftedImg;
+    cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, 21.0, 51.0); //values may need to be changed
+
+    cv::imwrite("0_imgRoiColor.jpg", imgRoiColor);
+    cv::imwrite("1_shiftedImg.jpg", shiftedImg);
+
+    cv::Mat grayImg;
+
+    cv::cvtColor(shiftedImg, grayImg, CV_BGR2GRAY);
 
     //store the original roi colored, to redraw circle if needed
-    imgRoiColor.copyTo(this->imgColorOriginal);
+    //imgRoiColor.copyTo(this->imgColorOriginal);
 
     //int edgeThresh = 1;
     int cannyThreshold = 100; //no real differences between threshold values, because of just two colors (black and white)
@@ -137,7 +139,7 @@ void ColonyCounter::analyseBlobs(cv::Mat imgRoi)
     cv::Mat cannyOutput;
 
     //Detect edges using canny
-    imgRoi.copyTo(cannyOutput);
+    grayImg.copyTo(cannyOutput);
     cv::Canny(cannyOutput, cannyOutput, cannyThreshold, cannyThreshold*ratio, kernelSize);
 
     cv::findContours(cannyOutput, this->contours, this->hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
@@ -145,6 +147,7 @@ void ColonyCounter::analyseBlobs(cv::Mat imgRoi)
     analyseContours(imgRoiColor);
 
     imgRoiColor.copyTo(this->imgColor);
+    cv::imwrite("result.jpg", imgColor);
 
     return;
 }
@@ -516,11 +519,19 @@ int ColonyCounter::isCircle(std::vector<cv::Point> &data)
 
 std::vector<std::vector<cv::Point>> ColonyCounter::seperateColonies(std::vector<cv::Point> &data, int k)
 {
+    //Use max k to avoid the following error
+    //OpenCV Error: Assertion failed (N >= K) in kmeans
+    //100 is set arbitrary
+    if( k > 100 ) {
+        std::vector<std::vector<cv::Point>> emptyVec;
+        return emptyVec;
+    }
+
     //Set k-means criteria
     cv::TermCriteria kCriteria = cv::TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 1000, 0.1);
 
     cv::Mat dataBuffer = cv::Mat(data.size(), 2, CV_32F);
-    for(int i=0; i <dataBuffer.rows; i++) {
+    for(int i=0; i < dataBuffer.rows; i++) {
         dataBuffer.at<float>(i, 0) = data[i].x;
         dataBuffer.at<float>(i, 1) = data[i].y;
     }
