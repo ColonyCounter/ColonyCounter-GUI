@@ -13,7 +13,7 @@
 
 //Name of the organism(s) and their corresponding .xml file(s)
 #define E_COLI "E. coli"
-#define E_COLI_XML "data/e_coli.xml"
+#define E_COLI_XML "data/cascade.xml" //currently it is not E.Coli that we have trained with
 
 #define BINARY 0
 #define BINARY_INVERTED 1
@@ -73,8 +73,8 @@ private:
     int drawCircleSize = 5;
     float minCircleRatio = 1.0;
     float maxCircleRatio = 5.0;
-    float scaleFactorCascade = 1.1;
-    int minNeighborsCascade = 2;
+    float scaleFactorCascade = 1.05;
+    int minNeighborsCascade = 3;
 
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;

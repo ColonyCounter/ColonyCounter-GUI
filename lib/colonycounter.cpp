@@ -12,6 +12,7 @@ int ColonyCounter::loadImage(QString fileName)
         return 0;
     }
 
+    //imgOriginal should not be touched, just to store image in its original state
     this->imgOriginal = cv::imread(fileName.toStdString().c_str(), CV_LOAD_IMAGE_COLOR);
 
     if( this->imgOriginal.empty() || !(this->imgOriginal.data) ) {
@@ -20,7 +21,7 @@ int ColonyCounter::loadImage(QString fileName)
     }
 
     cv::cvtColor(this->imgOriginal, this->imgColor, CV_RGB2BGR); //Qt uses RGB and opencv BGR
-    cv::cvtColor(this->imgOriginal, this->imgGray, CV_BGR2GRAY); //imgGray should not be changes, it's the original image but gray
+    cv::cvtColor(this->imgOriginal, this->imgGray, CV_RGB2GRAY); //imgGray should not be changes, it's the original image but gray
 
     this->imgColor.copyTo(this->img);
 
@@ -110,6 +111,10 @@ int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSi
         this->analyseBlobs(imgRoiColor);
     }
 
+    foundColonies = this->acceptedColonies.size();
+
+    cv::imwrite("occupied.jpg", this->imgOccupied);
+
     return 0; //number of found colonies is retrieved with return_numberOfColonies function
 }
 
@@ -119,7 +124,7 @@ void ColonyCounter::analyseBlobs(cv::Mat imgRoiColor)
     //cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2BGR);
 
     cv::Mat shiftedImg;
-    cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, 21.0, 51.0); //values may need to be changed
+    cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, this->sp, this->sr); //values may need to be changed
 
     cv::imwrite("0_imgRoiColor.jpg", imgRoiColor);
     cv::imwrite("1_shiftedImg.jpg", shiftedImg);
@@ -127,6 +132,7 @@ void ColonyCounter::analyseBlobs(cv::Mat imgRoiColor)
     cv::Mat grayImg;
 
     cv::cvtColor(shiftedImg, grayImg, CV_BGR2GRAY);
+    //cv::cvtColor(imgRoiColor, grayImg, CV_BGR2GRAY);
 
     //store the original roi colored, to redraw circle if needed
     //imgRoiColor.copyTo(this->imgColorOriginal);
@@ -441,8 +447,7 @@ int ColonyCounter::countColoniesCascade(QPoint circleCenter, int circleRad, QSiz
         return -1;
     }
 
-    int foundColonies = 0;
-    foundColonies += this->analyseColoniesCascade(singleColonyCascade);
+    this->foundColonies = this->analyseColoniesCascade(singleColonyCascade);
 
     return foundColonies;
 }
@@ -453,27 +458,42 @@ int ColonyCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCasc
     // Reset the vectors to start again
     this->singleColonies.clear();
 
-    cv::Mat imgGray, imgResult;
-    this->img.copyTo(imgResult);
+    //Create mask of petri dish
+    cv::Mat mask = cv::Mat::zeros(this->img.rows, this->img.cols, CV_8UC1);
+    cv::circle(mask, this->circleCenterPoint, this->circleRadius, cv::Scalar(255, 255, 255), -1); //-1 means circle is filled, lineType=8 and shift= 0 << standard values
 
-    cv::cvtColor(this->img, imgGray, cv::COLOR_BGR2GRAY);
+    cv::Mat imgRoiTemp;
+    this->img.copyTo(imgRoiTemp, mask);
+
+    //Create Region of Interest, reduzed size
+    cv::Mat imgRoi(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
+
+    cv::Mat imgGray, imgResult;
+    imgRoi.copyTo(imgResult);
+
+    cv::cvtColor(imgRoi, imgGray, cv::COLOR_RGB2GRAY);
     //cv::equalizeHist(imgGray, imgGray);
+
+    //Need to add to crop the image -> make roi image
 
     //Detect single colonies
     //LBP classifer used right know, maybe change to Haar
+    //singleColonyCascade.detectMultiScale(imgGray, this->singleColonies, this->scaleFactorCascade, this->minNeighborsCascade,
+    //                              0|cv::CASCADE_SCALE_IMAGE, cv::Size(this->minRadius, this->minRadius), cv::Size(this->maxRadius, this->maxRadius));
     singleColonyCascade.detectMultiScale(imgGray, this->singleColonies, this->scaleFactorCascade, this->minNeighborsCascade,
-                                  0, cv::Size(this->minRadius, this->minRadius), cv::Size(this->maxRadius, this->maxRadius));
+                                      0|cv::CASCADE_SCALE_IMAGE);
 
     for(cv::Rect colony: this->singleColonies) {
-        cv::Point center(colony.x + colony.width/2, colony.y + colony.height/2);
-        cv::circle(imgResult, center, (colony.width+colony.height)/2, cv::Scalar(255, 0, 0), 2, 8);
+        cv::Point center(colony.x + (colony.width)/2, colony.y + (colony.height)/2);
+        cv::circle(imgResult, center, (colony.width+colony.height)*0.25, cv::Scalar(255, 0, 0), 2, 8);
     }
     foundColonies += this->singleColonies.size();
 
-    //Add the detection of more than one colony
-
     imgResult.copyTo(this->imgColor);
+    cv::cvtColor(imgResult, imgResult, cv::COLOR_BGR2RGB);
+    cv::imwrite("cascade_result.jpg", imgResult);
 
+    foundColonies = this->singleColonies.size();
     return foundColonies;
 }
 
@@ -686,5 +706,5 @@ QImage ColonyCounter::return_imgQColored(void)
 
 int ColonyCounter::return_numberOfColonies(void)
 {
-    return this->acceptedColonies.size();
+    return this->foundColonies;
 }

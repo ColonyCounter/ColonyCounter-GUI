@@ -426,7 +426,7 @@ void MainWindow::sr_valueChanged(double newValue)
 
 void MainWindow::finishedSettings(void)
 {
-    Colonies.make_pyrMeanShiftFiltering();
+    //Colonies.make_pyrMeanShiftFiltering();
     updateImgLabel();
 
     qDebug() << "Finished settings";
