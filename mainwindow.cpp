@@ -341,13 +341,13 @@ void MainWindow::enableWidgets(void)
     ui->maxRadiusSpin->setEnabled(true);
 }
 
-void MainWindow::on_actionE_coli_triggered()
+void MainWindow::on_actionDefault_triggered()
 {
     this->useCascadeClassifier = true;
     this->activeModule = cascade;
 
-    this->cascadeClassifierType = E_COLI;
-    ui->moduleUsedLabel->setText(E_COLI);
+    this->cascadeClassifierType = DEFAULT_CASCADE;
+    ui->moduleUsedLabel->setText(DEFAULT_CASCADE);
 
     this->showColored = true;
 

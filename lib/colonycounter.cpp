@@ -20,8 +20,8 @@ int ColonyCounter::loadImage(QString fileName)
         return 0;
     }
 
-    cv::cvtColor(this->imgOriginal, this->imgColor, CV_RGB2BGR); //Qt uses RGB and opencv BGR
-    cv::cvtColor(this->imgOriginal, this->imgGray, CV_RGB2GRAY); //imgGray should not be changes, it's the original image but gray
+    cv::cvtColor(this->imgOriginal, this->imgColor, CV_BGR2RGB); //Qt uses RGB and opencv BGR
+    cv::cvtColor(this->imgOriginal, this->imgGray, CV_BGR2GRAY);
 
     this->imgColor.copyTo(this->img);
 
@@ -70,17 +70,24 @@ void ColonyCounter::make_pyrMeanShiftFiltering(void)
     return;
 }
 
-int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize pixmapSize, analyseModule activeModule)
+void ColonyCounter::resetCounting(void)
 {
-    qDebug() << "Starting counting colonies on: " << this->return_imgPath();
-
     //Reset variables for a new start
-    this->acceptedColonies.clear();
-    this->acceptedMeansColonies.clear();
     this->contours.clear();
     this->hierarchy.clear();
+    this->acceptedColonies.clear();
+    this->acceptedMeansColonies.clear();
+    this->points.clear();
     this->foundColonies = 0;
 
+    this->imgColorOriginal.copyTo(this->imgColor);
+}
+
+int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize pixmapSize, analyseModule activeModule)
+{
+    qDebug() << "Starting standard counting on: " << this->imgPath;
+
+    this->resetCounting();
     this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize, this->img);
 
     cv::threshold(this->imgGray, this->img, this->thresholdValue, 255, this->thresholdType); //so user decide the threshold type
@@ -92,50 +99,46 @@ int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSi
     cv::Mat imgRoiTemp;
     this->img.copyTo(imgRoiTemp, mask);
 
-    //Create Region of Interest, reduzed size
+    //Create Region of Interest, to reduze size
     cv::Mat imgRoi(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
 
+    //Reset image, to use in isSpaceAlreadyOccupied()
+    this->imgOccupied = cv::Mat(imgRoi.rows, imgRoi.cols, CV_8UC1, cv::Scalar(0, 0, 0));
+
+    // used to draw colored circles on it
     this->imgOriginal.copyTo(imgRoiTemp, mask);
     cv::Mat imgRoiColor(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
-
-    //Reset image to use isSpaceAlreadyOccupied()
-    this->imgOccupied = cv::Mat(imgRoi.rows, imgRoi.cols, CV_8UC1, cv::Scalar(0, 0, 0));
 
     if( activeModule == single ) {
         this->analyseBlobsAlternative(imgRoi);
     }
     else if(activeModule == watershed) {
+        // deprecated
         this->analyseBlobsWatershed(imgRoiColor);
     }
     else {
+        // standard method
         this->analyseBlobs(imgRoiColor);
     }
 
     foundColonies = this->acceptedColonies.size();
-
-    cv::imwrite("occupied.jpg", this->imgOccupied);
 
     return 0; //number of found colonies is retrieved with return_numberOfColonies function
 }
 
 void ColonyCounter::analyseBlobs(cv::Mat imgRoiColor)
 {
-    //cv::Mat imgRoiColor;
-    //cv::cvtColor(imgRoi, imgRoiColor, CV_GRAY2BGR);
-
     cv::Mat shiftedImg;
-    cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, this->sp, this->sr); //values may need to be changed
+    cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, this->sp, this->sr);
 
-    cv::imwrite("0_imgRoiColor.jpg", imgRoiColor);
-    cv::imwrite("1_shiftedImg.jpg", shiftedImg);
+    cv::imwrite("0_aB_imgRoiColor.jpg", imgRoiColor);
+    cv::imwrite("1_aB_shiftedImg.jpg", shiftedImg);
 
     cv::Mat grayImg;
-
     cv::cvtColor(shiftedImg, grayImg, CV_BGR2GRAY);
-    //cv::cvtColor(imgRoiColor, grayImg, CV_BGR2GRAY);
 
     //store the original roi colored, to redraw circle if needed
-    //imgRoiColor.copyTo(this->imgColorOriginal);
+    imgRoiColor.copyTo(this->imgColorOriginal);
 
     //int edgeThresh = 1;
     int cannyThreshold = 100; //no real differences between threshold values, because of just two colors (black and white)
@@ -153,7 +156,9 @@ void ColonyCounter::analyseBlobs(cv::Mat imgRoiColor)
     analyseContours(imgRoiColor);
 
     imgRoiColor.copyTo(this->imgColor);
-    cv::imwrite("result.jpg", imgColor);
+    cv::imwrite("99_aB_result.jpg", imgColor);
+
+    cv::cvtColor(this->imgColor, this->imgColor, CV_BGR2RGB); //convert for Qt to display correctly
 
     return;
 }
@@ -172,7 +177,6 @@ void ColonyCounter::analyseBlobsAlternative(cv::Mat imgRoi)
 
     cv::Laplacian(imgRoi, imgRoi, 0, 5);
 
-
     //dilate
     cv::dilate(imgRoi, imgRoi, cv::Mat());
 
@@ -183,29 +187,10 @@ void ColonyCounter::analyseBlobsAlternative(cv::Mat imgRoi)
     //cv::findContours(imgRoiDiff.clone(), this->contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
     cv::findContours(imgRoiDiff, this->contours, this->hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
-    /*double minArea = this->minRadius;
-    double minCircleRatio = 0.1;
-    for(unsigned int i=0; i<this->contours.size(); ++i)
-    {
-        double cArea = cv::contourArea(this->contours[i]);
-        if(cArea < minArea) continue;
-
-        //filteredContours.push_back(contours[i]);
-        //cv::drawContours(input, contours, i, cv::Scalar(0,255,0), 1);
-        cv::Point2f center;
-        float radius;
-        cv::minEnclosingCircle(this->contours[i], center, radius);
-
-        double circleArea = radius*radius*CV_PI;
-
-        if(cArea/circleArea < minCircleRatio) continue;
-
-        //cv::circle(imgRoiColor, center, radius, cv::Scalar(0,0,255),2);
-    }*/
     this->analyseContours(imgRoiColor);
 
     imgRoiColor.copyTo(this->imgColor);
-    cv::imwrite("2_imgRoiColor.jpg", imgRoiColor);
+    cv::imwrite("99_aBA_imgRoiColor.jpg", imgColor);
 
     return;
 }
@@ -213,14 +198,11 @@ void ColonyCounter::analyseBlobsAlternative(cv::Mat imgRoi)
 void ColonyCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
 {
     //Not really promising right know
-    //http://docs.opencv.org/3.1.0/d2/dbd/tutorial_distance_transform.html#gsc.tab=0
-    //http://docs.opencv.org/3.1.0/d3/db4/tutorial_py_watershed.html#gsc.tab=0
-    //http://www.pyimagesearch.com/2015/11/02/watershed-opencv/
     cv::Mat shiftedImg;
     cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, 21.0, 51.0); //values may need to be changed
 
-    cv::imwrite("0_imgRoiColor.jpg", imgRoiColor);
-    cv::imwrite("1_shiftedImg.jpg", shiftedImg);
+    cv::imwrite("0_aBW_imgRoiColor.jpg", imgRoiColor);
+    cv::imwrite("1_aBW_shiftedImg.jpg", shiftedImg);
 
     cv::Mat grayImg;
 
@@ -228,7 +210,7 @@ void ColonyCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
     cv::imwrite("2_gray.jpg", grayImg);
 
     //cv::Mat threshImg;
-    //cv::threshold(grayImg, threshImg, this->thresholdValue, 255, this->thresholdType); //not working, trehshold value nneds to be changed here
+    //cv::threshold(grayImg, threshImg, this->thresholdValue, 255, this->thresholdType); //not working, trehshold value needs to be changed here
     //cv::imwrite("3_grayThreshold.jpg", threshImg);
 
     cv::findContours(grayImg, this->contours, this->hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
@@ -250,7 +232,7 @@ void ColonyCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
         cv::drawContours(contoursImg, contours_poly, i, color, 1, 8, this->hierarchy, 0, cv::Point());
         cv::circle(contoursImg, center[i], (int)radius[i], color, 2, 8, 0);
     }
-    cv::imwrite("4_contours.jpg", contoursImg);
+    cv::imwrite("4_aBW_contours.jpg", contoursImg);
 
     qDebug() << "Finished watersheed";
 
@@ -265,27 +247,26 @@ void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
         cv::Point meanPoint = sumPoint * (1.0 / contour.size());
 
         //calculate the mean radius
-        unsigned int iCounter = 0;
+        unsigned int i = 0;
         float meanRadius = 0;
         float x = 0;
         float y = 0;
-        for(iCounter=0; iCounter < contour.size(); iCounter++) {
-            x = (float) contour.at(iCounter).x;
-            y = (float) contour.at(iCounter).y;
+        for(i=0; i < contour.size(); i++) {
+            x = (float) contour.at(i).x;
+            y = (float) contour.at(i).y;
 
             //calculate distance between meanPoint and current processed point
-            float distanceX = (float) (x-meanPoint.x)*(x-meanPoint.x);
-            float distanceY = (float) (y-meanPoint.y)*(y-meanPoint.y);
+            float distanceX = (float) (x - meanPoint.x)*(x - meanPoint.x);
+            float distanceY = (float) (y - meanPoint.y)*(y - meanPoint.y);
             meanRadius += (float) sqrt(distanceX+distanceY);
-            //maybe replace sqrt with: https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
-            //or use integer for meanRadius, then this->root can be used
         }
 
-        meanRadius = meanRadius / contour.size(); //get the mean of it
+        meanRadius /= contour.size(); //get the mean of it
+
         float circleArea = (float) M_PI * meanRadius * meanRadius;
-        if( (!(circleArea > 0)) || (circleArea < this->minRadius) ) {
-            //circle area cannot be zero but radius can be set zero by user, Next
-            continue;
+        if( (circleArea <= 0) || (circleArea < this->minRadius) ) {
+            //circle area cannot be zero but radius can be set zero by user
+            continue; //next
         }
 
         qDebug() << "Circle Area: "<< circleArea;
@@ -298,7 +279,7 @@ void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
         //First consider if the blob is made up of more than one colony
         //Needs improvements!
         int k = 0;
-        for(float i=this->maxRadius; i>= this->minRadius; i -= 0.1) {
+        for(float i=this->maxRadius; i >= this->minRadius; i -= 0.1) {
             float iCircleArea = (float) M_PI * i * i;
             //double area = cv::contourArea(contour); //not precise enough
 
@@ -310,12 +291,11 @@ void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
         }
 
         if(k == 0) {
-            continue;
+            continue; //next
         }
-
         else if(k == 1) {
             if( !(this->isCircle(contour)) || (this->minRadius > meanRadius) || (this->maxRadius < meanRadius) ) {
-                //Not a colony
+                //Not a colony, or out of specified radius range
                 continue;
             }
 
@@ -323,14 +303,7 @@ void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
                 continue; //There is already something, next one
             }
 
-            //Store center point to vector
-            point_radius tempPointRadius;
-            tempPointRadius.pnt = meanPoint;
-            tempPointRadius.radius = meanRadius;
-
-            //Accept found colony
-            this->acceptedColonies.push_back(contour);
-            this->acceptedMeansColonies.push_back(tempPointRadius);
+            this->storeAndPaintColony(meanPoint, meanRadius, contour);
 
             //Paint it
             cv::circle(imgRoiColor, meanPoint, meanRadius, cv::Scalar(255, 0, 0), 2, 8);
@@ -341,6 +314,7 @@ void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
         else if(k > 1) {
             qDebug() << "Splitting, k = " << k;
             std::vector<std::vector<cv::Point>> tempColonies = this->seperateColonies(contour, k);
+
             for(std::vector<cv::Point> tempColony: tempColonies) {
                 cv::Point sum = std::accumulate(tempColony.begin(), tempColony.end(), cv::Point(0, 0));
                 cv::Point mean = sum * (1.0 / tempColony.size());
@@ -348,8 +322,8 @@ void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
                 //Get the mean radius
                 meanRadius = 0;
                 for(cv::Point pnt: tempColony) {
-                    float distanceX = (float) (pnt.x-mean.x)*(pnt.x-mean.x);
-                    float distanceY = (float) (pnt.y-mean.y)*(pnt.y-mean.y);
+                    float distanceX = (float) (pnt.x - mean.x)*(pnt.x - mean.x);
+                    float distanceY = (float) (pnt.y - mean.y)*(pnt.y - mean.y);
                     meanRadius += (float) sqrt(distanceX+distanceY);
                 }
                 meanRadius /= tempColony.size();
@@ -363,38 +337,14 @@ void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
                     continue; //Already, next one
                 }
 
-                point_radius tempPntRadius;
-                tempPntRadius.pnt = mean;
-                tempPntRadius.radius = meanRadius;
-
-                this->acceptedColonies.push_back(tempColony);
-                this->acceptedMeansColonies.push_back(tempPntRadius);
+                this->storeAndPaintColony(meanPoint, meanRadius, tempColony);
 
                 //Paint it
-                cv::circle(imgRoiColor, mean, meanRadius, cv::Scalar(255, 0, 0), 2, 8);
+                cv::circle(imgRoiColor, mean, meanRadius, cv::Scalar(0, 255, 0), 2, 8);
             }
         }
 
     }
-
-    /*std::vector<std::vector<cv::Point> > contours_poly( this->acceptedColonies.size() );
-    std::vector<cv::Point2f>center( this->acceptedColonies.size() );
-    std::vector<float>radius( this->acceptedColonies.size() );
-
-    for(unsigned int i = 0; i < acceptedColonies.size(); i++){
-        cv::approxPolyDP((cv::Mat)this->acceptedColonies[i], contours_poly[i], 3, true);
-        cv::minEnclosingCircle((cv::Mat)contours_poly[i], center[i], radius[i]);
-    }
-
-    cv::Mat contoursImg = cv::Mat::zeros( imgRoiColor.size(), CV_8UC3 );
-    cv::RNG rng(12345);
-    for(unsigned int i = 0; i < acceptedColonies.size(); i++) {
-        cv::Scalar color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255));
-        cv::drawContours(imgRoiColor, contours_poly, i, color, 1, 8, this->hierarchy, 0, cv::Point());
-        cv::circle(imgRoiColor, center[i], (int)radius[i], color, 2, 8, 0);
-    }
-    cv::imwrite("4_contours.jpg", imgRoiColor);*/
-
 }
 
 bool ColonyCounter::isSpaceAlreadyOccupied(cv::Point meanPoint, int meanRadius)
@@ -423,7 +373,6 @@ bool ColonyCounter::isSpaceAlreadyOccupied(cv::Point meanPoint, int meanRadius)
     //no other colony at same palce, add it to Mat
     cv::circle(this->imgOccupied, meanPoint, meanRadius, cv::Scalar(255, 255, 255), -1, 8);
 
-    //if not add circle with mean radius to Mat
     return false;
 }
 
@@ -433,30 +382,31 @@ int ColonyCounter::countColoniesCascade(QPoint circleCenter, int circleRad, QSiz
     qDebug() << "Organism" << organism;
     qDebug() << "Starting counting colonies on: " << this->return_imgPath();
 
+    this->resetCounting();
     this->calculateCircleCenterAndRadius(circleCenter, circleRad, pixmapSize, this->img);
 
     //Load the right .xml files based on user choice
-    std::string singleColonyXML;
-    if( organism.compare(E_COLI) == 0 ) {
-        singleColonyXML = E_COLI_XML;
+    std::string colonyXML;
+    if( organism.compare(DEFAULT_CASCADE) == 0 ) {
+        colonyXML = DEFAULT_XML;
     }
 
-    cv::CascadeClassifier singleColonyCascade;
-    if( !singleColonyCascade.load(singleColonyXML) ) {
+    cv::CascadeClassifier colonyCascade;
+    if( !colonyCascade.load(colonyXML) ) {
         qCritical() << "Could not load .xml file(s).";
         return -1;
     }
 
-    this->foundColonies = this->analyseColoniesCascade(singleColonyCascade);
+    this->foundColonies = this->analyseColoniesCascade(colonyCascade);
 
     return foundColonies;
 }
 
-int ColonyCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCascade)
+int ColonyCounter::analyseColoniesCascade(cv::CascadeClassifier colonyCascade)
 {
     int foundColonies = 0;
     // Reset the vectors to start again
-    this->singleColonies.clear();
+    this->cascadeColonies.clear();
 
     //Create mask of petri dish
     cv::Mat mask = cv::Mat::zeros(this->img.rows, this->img.cols, CV_8UC1);
@@ -471,29 +421,26 @@ int ColonyCounter::analyseColoniesCascade(cv::CascadeClassifier singleColonyCasc
     cv::Mat imgGray, imgResult;
     imgRoi.copyTo(imgResult);
 
-    cv::cvtColor(imgRoi, imgGray, cv::COLOR_RGB2GRAY);
+    cv::cvtColor(imgRoi, imgGray, cv::COLOR_BGR2GRAY);
     //cv::equalizeHist(imgGray, imgGray);
 
-    //Need to add to crop the image -> make roi image
-
-    //Detect single colonies
-    //LBP classifer used right know, maybe change to Haar
-    //singleColonyCascade.detectMultiScale(imgGray, this->singleColonies, this->scaleFactorCascade, this->minNeighborsCascade,
+    //colonyCascade.detectMultiScale(imgGray, this->cascadeColonies, this->scaleFactorCascade, this->minNeighborsCascade,
     //                              0|cv::CASCADE_SCALE_IMAGE, cv::Size(this->minRadius, this->minRadius), cv::Size(this->maxRadius, this->maxRadius));
-    singleColonyCascade.detectMultiScale(imgGray, this->singleColonies, this->scaleFactorCascade, this->minNeighborsCascade,
+    colonyCascade.detectMultiScale(imgGray, this->cascadeColonies, this->scaleFactorCascade, this->minNeighborsCascade,
                                       0|cv::CASCADE_SCALE_IMAGE);
 
-    for(cv::Rect colony: this->singleColonies) {
+    for(cv::Rect colony: this->cascadeColonies) {
         cv::Point center(colony.x + (colony.width)/2, colony.y + (colony.height)/2);
         cv::circle(imgResult, center, (colony.width+colony.height)*0.25, cv::Scalar(255, 0, 0), 2, 8);
     }
-    foundColonies += this->singleColonies.size();
+    foundColonies += this->cascadeColonies.size();
 
     imgResult.copyTo(this->imgColor);
+
     cv::cvtColor(imgResult, imgResult, cv::COLOR_BGR2RGB);
     cv::imwrite("cascade_result.jpg", imgResult);
 
-    foundColonies = this->singleColonies.size();
+    foundColonies = this->cascadeColonies.size();
     return foundColonies;
 }
 
@@ -529,7 +476,7 @@ int ColonyCounter::isCircle(std::vector<cv::Point> &data)
     //Calculate the ratio
     float ratio = sqrt(pcaAnalysis.eigenvalues.at<float>(0)) / sqrt(pcaAnalysis.eigenvalues.at<float>(1));
 
-    if(ratio <= this->minCircleRatio || ratio > this->maxCircleRatio) {
+    if(ratio < this->minCircleRatio || ratio > this->maxCircleRatio) {
         return 0;
         qDebug() << "No circle";
     }
@@ -548,7 +495,7 @@ std::vector<std::vector<cv::Point>> ColonyCounter::seperateColonies(std::vector<
     }
 
     //Set k-means criteria
-    cv::TermCriteria kCriteria = cv::TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 1000, 0.1);
+    cv::TermCriteria kCriteria = cv::TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, MAX_ITER_TERM_CRITERIA, EPS_TERM_CRITERIA);
 
     cv::Mat dataBuffer = cv::Mat(data.size(), 2, CV_32F);
     for(int i=0; i < dataBuffer.rows; i++) {
@@ -576,7 +523,19 @@ std::vector<std::vector<cv::Point>> ColonyCounter::seperateColonies(std::vector<
     return returnVector;
 }
 
-unsigned int root(unsigned int x)
+void ColonyCounter::storeAndPaintColony(cv::Point pnt, float rad, std::vector<cv::Point> colony)
+{
+    point_radius tempPntAndRadius;
+    tempPntAndRadius.pnt = pnt;
+    tempPntAndRadius.radius = rad;
+
+    this->acceptedColonies.push_back(colony);
+    this->acceptedMeansColonies.push_back(tempPntAndRadius);
+
+    return;
+}
+
+unsigned int ColonyCounter::root(unsigned int x)
 {
     //Source: http://supp.iar.com/FilesPublic/SUPPORT/000419/AN-G-002.pdf
     unsigned int a,b;
@@ -600,6 +559,7 @@ void ColonyCounter::drawCircles()
         cv::circle(this->imgColor, pntAndRad.pnt, pntAndRad.radius, cv::Scalar(255, 0, 0), 2, 8);
     }
 
+    cv::cvtColor(this->imgColor, this->imgColor, CV_BGR2RGB); //convert for Qt to display correctly
     return;
 }
 
@@ -629,17 +589,16 @@ void ColonyCounter::removeCircle(QPoint cursorPoint, QSize pixmapSize)
     this->calculateCircleCenterAndRadius(cursorPoint, this->maxRadius, pixmapSize, this->imgColor);
 
     //Search for nearest circle to remove
-    int vectorSize = this->acceptedMeansColonies.size();
+    unsigned int vectorSize = this->acceptedMeansColonies.size();
 
     if( vectorSize < 1 ) {
         return; //no elements in vector
     }
 
-    int i = 0;
+    unsigned int i = 0;
     cv::Point pnt = this->acceptedMeansColonies.at(i).pnt - this->circleCenterPoint;
     unsigned int oldDistance = pnt.x * pnt.x + pnt.y * pnt.y; //initial point to compare to
     for(i=0; i < vectorSize; i++) {
-        //Only Checks the first of the saved points to speed this up
         pnt = this->acceptedMeansColonies.at(i).pnt - this->circleCenterPoint;
 
         unsigned int newDistance = pnt.x * pnt.x + pnt.y * pnt.y;
@@ -654,6 +613,8 @@ void ColonyCounter::removeCircle(QPoint cursorPoint, QSize pixmapSize)
         this->acceptedColonies.erase(this->acceptedColonies.begin()+nearestPoint);
         this->acceptedMeansColonies.erase(this->acceptedMeansColonies.begin()+nearestPoint);
     }
+
+    return;
 }
 
 void ColonyCounter::set_contourSize(int newSize)
@@ -699,7 +660,6 @@ QImage ColonyCounter::return_imgQ(void)
 
 QImage ColonyCounter::return_imgQColored(void)
 {
-    //cv::cvtColor(this->imgColor, this->imgColor, CV_RGB2BGR);//Qt uses RGB and opencv BGR but conversion was already done
     this->imgQColor = QImage((uchar*) imgColor.data, imgColor.cols, imgColor.rows, imgColor.step, QImage::Format_RGB888);
     return this->imgQColor;
 }

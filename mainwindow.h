@@ -80,6 +80,8 @@ private slots:
     void on_actionWatershed_triggered();
     void on_actionSettings_triggered();
 
+    void on_actionDefault_triggered();
+
 protected:
 
 private:

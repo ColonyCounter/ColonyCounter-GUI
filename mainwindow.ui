@@ -383,7 +383,7 @@
       <property name="title">
        <string>cascade</string>
       </property>
-      <addaction name="actionE_coli"/>
+      <addaction name="actionDefault"/>
      </widget>
      <addaction name="actionStandard_module"/>
      <addaction name="actionSingle_colonies"/>
@@ -416,9 +416,9 @@
     <string>standard module</string>
    </property>
   </action>
-  <action name="actionE_coli">
+  <action name="actionDefault">
    <property name="text">
-    <string>E. coli</string>
+    <string>default</string>
    </property>
   </action>
   <action name="actionUse_Pi_Camera">

@@ -6,6 +6,8 @@ Settings::Settings(QWidget *parent) :
     ui(new Ui::Settings)
 {
     ui->setupUi(this);
+
+    // Load the current settings from the ColonyCOunter object
 }
 
 Settings::~Settings()

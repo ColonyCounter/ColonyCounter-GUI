@@ -12,8 +12,8 @@
 #include <opencv2/imgproc.hpp>
 
 //Name of the organism(s) and their corresponding .xml file(s)
-#define E_COLI "E. coli"
-#define E_COLI_XML "data/cascade.xml" //currently it is not E.Coli that we have trained with
+#define DEFAULT_CASCADE "Default"
+#define DEFAULT_XML "data/cascade.xml" //currently it is not E.Coli that we have trained with
 
 #define BINARY 0
 #define BINARY_INVERTED 1
@@ -23,6 +23,9 @@
 #define NONE 5
 
 #define THRESHOLD_VALUE 70
+
+#define MAX_ITER_TERM_CRITERIA 1000
+#define EPS_TERM_CRITERIA 0.1
 
 #define BLACK 0x000000
 #define WHITE 0xffffff
@@ -82,7 +85,7 @@ private:
     std::vector<point_radius> acceptedMeansColonies;
     std::vector<cv::Point> points;
 
-    std::vector<cv::Rect> singleColonies;
+    std::vector<cv::Rect> cascadeColonies;
 
 protected:
 
@@ -94,6 +97,7 @@ public:
     void spChanged(double);
     void srChanged(double);
     void make_pyrMeanShiftFiltering(void);
+    void resetCounting(void);
 
     int countColoniesStandard(QPoint, int, QSize, analyseModule);
     void analyseBlobs(cv::Mat);
@@ -103,9 +107,11 @@ public:
     bool isSpaceAlreadyOccupied(cv::Point, int);
     int countColoniesCascade(QPoint, int, QSize, QString);
     int analyseColoniesCascade(cv::CascadeClassifier);
+
     void calculateCircleCenterAndRadius(QPoint, int, QSize, cv::Mat);
     int isCircle(std::vector<cv::Point> &);
     std::vector<std::vector<cv::Point>> seperateColonies(std::vector<cv::Point> &, int);
+    void storeAndPaintColony(cv::Point, float, std::vector<cv::Point>);
     unsigned int root(unsigned int);
     void drawCircles();
     void addCircle(QPoint, QSize);
