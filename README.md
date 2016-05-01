@@ -6,9 +6,9 @@ ColonyCounter is currently in a very early stage of development. It is used to c
 
 The software is published under the [Apache License 2.0](https://github.com/ColonyCounter/ColonyCounter-GUI/blob/master/LICENSE).
 
-The GUI version of the ColonyCounter links against the Qt Framework which is licenced under the LGPL licence.
+The GUI version of the ColonyCounter links against the Qt Framework which is licensed under the LGPL licence.
 
-The project was inspired by the [CELLCOUNTER from Nghia Ho](http://nghiaho.com/?page_id=1011).
+The project was inspired by the [CellCounter from Nghia Ho](http://nghiaho.com/?page_id=1011).
 
 This is currently a hobby project. We do not have a professional IT background, so we are happy about every advice to improve the software.
 
