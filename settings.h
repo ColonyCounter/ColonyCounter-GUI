@@ -3,6 +3,10 @@
 
 #include <QDialog>
 
+#include "lib/colonycounter.h"
+
+extern ColonyCounter Colonies;
+
 namespace Ui {
 class Settings;
 }

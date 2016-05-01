@@ -22,8 +22,6 @@
 #define TO_ZERO_INVERTED 4
 #define NONE 5
 
-#define THRESHOLD_VALUE 70
-
 #define MAX_ITER_TERM_CRITERIA 1000
 #define EPS_TERM_CRITERIA 0.1
 
@@ -50,6 +48,25 @@ typedef struct point_radius point_radius;
 
 class ColonyCounter
 {
+public:
+    //User defined values
+    int thresholdValue = 255;
+    int thresholdType = NONE;
+
+    //for pyrMeanShiftFiltering
+    bool pyrMeanShiftEnabled = true;
+    double sp = 20.0; //sp – The spatial window radius.
+    double sr = 50.0; //sr – The color window radius.
+
+    float minContourSize = 4.0;
+    float minRadius = 0.5;
+    float maxRadius = 10;
+
+    float minCircleRatio = 1.0;
+    float maxCircleRatio = 5.0;
+    float scaleFactorCascade = 1.05;
+    int minNeighborsCascade = 3;
+
 private:
     cv::Mat imgOriginal, imgGray, img, imgColorOriginal, imgColor, imgOccupied;
     QImage imgQ, imgQColor; //Saved for qt so we can just convert to Pixmap
@@ -57,27 +74,6 @@ private:
     int foundColonies = 0;
     cv::Point circleCenterPoint;
     int circleRadius;
-
-    //User defined values
-    int thresholdValue = 1;
-    int thresholdType = BINARY_INVERTED;
-
-    //for pyrMeanShiftFiltering
-    double sp = 20.0; //sp – The spatial window radius.
-    double sr = 50.0; //sr – The color window radius.
-
-    float minContourSize = 4.0;
-    float minRadius = 0.1;
-    float maxRadius = 10;
-
-    float thresholdRadiusMin = 0.5;
-    float thresholdRadiusMax = 0.5;
-
-    int drawCircleSize = 5;
-    float minCircleRatio = 1.0;
-    float maxCircleRatio = 5.0;
-    float scaleFactorCascade = 1.05;
-    int minNeighborsCascade = 3;
 
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
@@ -117,11 +113,6 @@ public:
     void addCircle(QPoint, QSize);
     void removeCircle(QPoint, QSize);
 
-    void set_contourSize(int);
-    void set_minRadius(double);
-    void set_maxRadius(double);
-    void set_minCircleRatio(double);
-    void set_maxCircleRatio(double);
     void set_imgPath(QString);
     QString return_imgPath(void);
     QImage return_imgQOriginal(void);

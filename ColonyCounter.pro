@@ -22,13 +22,10 @@ LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lope
 
 SOURCES += main.cpp\
     mainwindow.cpp \
-    picam.cpp \
     settings.cpp \
     lib/colonycounter.cpp
 
 HEADERS  += mainwindow.h \
-    defines.h \
-    picam.h \
     settings.h \
     lib/colonycounter.h
 

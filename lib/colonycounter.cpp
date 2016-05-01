@@ -24,6 +24,7 @@ int ColonyCounter::loadImage(QString fileName)
     cv::cvtColor(this->imgOriginal, this->imgGray, CV_BGR2GRAY);
 
     this->imgColor.copyTo(this->img);
+    this->thresholdTypeChanged(thresholdType);
 
     return 1;
 }
@@ -43,9 +44,15 @@ void ColonyCounter::thresholdTypeChanged(int thresholdTypeArg)
 {
     //Save type and update image
     this->thresholdType = thresholdTypeArg;
-    //cv::equalizeHist( this->imgGray, this->imgGray ); //if used good thresholdValues differs dramatically
 
-    cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
+    if(this->thresholdType == NONE) {
+        this->imgColor.copyTo(this->img);
+
+        return;
+    }
+    else {
+        cv::threshold(imgGray, img, thresholdValue, 255, thresholdType);
+    }
 
     return;
 }
@@ -80,7 +87,7 @@ void ColonyCounter::resetCounting(void)
     this->points.clear();
     this->foundColonies = 0;
 
-    this->imgColorOriginal.copyTo(this->imgColor);
+    this->loadImage(this->imgPath);
 }
 
 int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSize pixmapSize, analyseModule activeModule)
@@ -615,31 +622,6 @@ void ColonyCounter::removeCircle(QPoint cursorPoint, QSize pixmapSize)
     }
 
     return;
-}
-
-void ColonyCounter::set_contourSize(int newSize)
-{
-    this->minContourSize = newSize;
-}
-
-void ColonyCounter::set_minRadius(double newRadius)
-{
-    this->minRadius = (float) newRadius;
-}
-
-void ColonyCounter::set_maxRadius(double newRadius)
-{
-    this->maxRadius = (float) newRadius;
-}
-
-void ColonyCounter::set_minCircleRatio(double newRatio)
-{
-    this->minCircleRatio = (float) newRatio;
-}
-
-void ColonyCounter::set_maxCircleRatio(double newRatio)
-{
-    this->maxCircleRatio = (float) newRatio;
 }
 
 void ColonyCounter::set_imgPath(QString fileName)

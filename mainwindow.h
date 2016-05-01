@@ -21,9 +21,7 @@
 
 #include "settings.h"
 
-#include "defines.h"
 #include "lib/colonycounter.h"
-#include "picam.h"
 
 extern ColonyCounter Colonies;
 
@@ -52,35 +50,23 @@ signals:
 
 private slots:
     void on_actionLoad_Image_triggered();
-    void on_thresholdValueSpin_valueChanged(int);
-    void on_thresholdTypeBox_currentIndexChanged(int);
     void on_countColoniesButton_clicked();
     void finishedCounting();
 
     void on_chooseCircleButton_clicked();
     void updateCircle();
 
-    void on_minContourSizeSpin_valueChanged(int);
-    void on_minPcaRatioSpin_valueChanged(double);
-    void on_maxPcaRatioSpin_valueChanged(double);
-    void on_minRadiusSpin_valueChanged(double);
-    void on_maxRadiusSpin_valueChanged(double);
-
     void sp_valueChanged(double);
     void sr_valueChanged(double);
     void finishedSettings(void);
 
-    void disableWidgets(void);
-    void enableWidgets(void);
-    void on_actionE_coli_triggered();
+    void on_actionDefault_triggered();
     void on_actionStandard_module_triggered();
 
     void on_add_deleteColoniesButton_clicked();
     void on_actionSingle_colonies_triggered();
     void on_actionWatershed_triggered();
     void on_actionSettings_triggered();
-
-    void on_actionDefault_triggered();
 
 protected:
 
@@ -93,7 +79,7 @@ private:
     QFutureWatcher<int> *watcher;
     analyseModule activeModule = standard;
     bool useCascadeClassifier = false;
-    QString cascadeClassifierType = "E. coli"; //standard organism
+    QString cascadeClassifierType = "Default Cascade"; //standard organism
     //Need to get rid of these three bool variables, that allows to draw circle
     bool drawCircle = false; //gets false in updateImgLabel
     bool drawCircleAllowed = false; //gets false when button to accept circle was pressed

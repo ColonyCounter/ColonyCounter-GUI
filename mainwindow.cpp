@@ -27,7 +27,6 @@ void MainWindow::on_actionLoad_Image_triggered()
         this->showColored = true;
 
         ui->countColoniesLabel->setText("Found colonies: 0");
-        ui->thresholdTypeBox->setCurrentIndex(NONE);
 
         updateImgLabel();
     }
@@ -78,42 +77,6 @@ void MainWindow::resizeEvent(QResizeEvent* event)
    qDebug() << "Resized";
 }
 
-void MainWindow::on_thresholdValueSpin_valueChanged(int thresholdValue)
-{
-    //If None is choosen show colored iamge
-    if( ui->thresholdTypeBox->currentIndex() == NONE ) {
-        this->showColored = true;
-
-        updateImgLabel();
-        return;
-    }
-
-    Colonies.thresholdValueChanged(thresholdValue);
-
-    this->showColored = false;
-    updateImgLabel();
-
-    return;
-}
-
-void MainWindow::on_thresholdTypeBox_currentIndexChanged(int index)
-{
-    //If None is choosen show colored iamge
-    if( index == NONE ) {
-        this->showColored = true;
-
-        updateImgLabel();
-        return;
-    }
-
-    Colonies.thresholdTypeChanged(index);
-
-    this->showColored = false;
-    updateImgLabel();
-
-    return;
-}
-
 void MainWindow::on_countColoniesButton_clicked()
 {
     //Disable add/delete of colonies
@@ -146,6 +109,7 @@ void MainWindow::on_chooseCircleButton_clicked()
     this->drawCircleAllowed = true;
 
     ui->countColoniesLabel->setText("Found colonies: 0");
+
     this->update();
 }
 
@@ -180,10 +144,10 @@ void MainWindow::wheelEvent(QWheelEvent *event)
     if( this->drawCircleAllowed ) {
 
         if( wheelDegrees.y() > 0) {
-            this->circleRadius += 10;
+            this->circleRadius += 5;
         }
-        else if( wheelDegrees.y() < 0 && this->circleRadius > 10) {
-            this->circleRadius -= 10;
+        else if( wheelDegrees.y() < 0 && this->circleRadius > 5) {
+            this->circleRadius -= 5;
         }
 
         this->drawCircle = true;
@@ -279,68 +243,6 @@ void MainWindow::updateCircle()
     updateImgLabel();
 }
 
-void MainWindow::on_minContourSizeSpin_valueChanged(int newSize)
-{
-    Colonies.set_contourSize(newSize);
-}
-
-void MainWindow::on_minRadiusSpin_valueChanged(double newValue)
-{
-    Colonies.set_minRadius((float) newValue);
-}
-
-void MainWindow::on_maxRadiusSpin_valueChanged(double newValue)
-{
-    Colonies.set_maxRadius((float) newValue);
-}
-
-
-void MainWindow::on_minPcaRatioSpin_valueChanged(double newValue)
-{
-    Colonies.set_minCircleRatio((float) newValue);
-}
-
-void MainWindow::on_maxPcaRatioSpin_valueChanged(double newValue)
-{
-    Colonies.set_maxCircleRatio((float) newValue);
-}
-
-void MainWindow::disableWidgets(void)
-{
-    ui->thresholdValueLabel->setEnabled(false);
-    ui->thresholdValueSpin->setEnabled(false);
-    ui->thresholdTypeLabel->setEnabled(false);
-    ui->thresholdTypeBox->setEnabled(false);
-    ui->minContourSizeLabel->setEnabled(false);
-    ui->minContourSizeSpin->setEnabled(false);
-    ui->minPcaRatioLabel->setEnabled(false);
-    ui->minPcaRatioSpin->setEnabled(false);
-    ui->maxPcaRatioLabel->setEnabled(false);
-    ui->maxPcaRatioSpin->setEnabled(false);
-    ui->minRadiusLabel->setEnabled(false);
-    ui->minRadiusSpin->setEnabled(false);
-    ui->maxRadiusLabel->setEnabled(false);
-    ui->maxRadiusSpin->setEnabled(false);
-}
-
-void MainWindow::enableWidgets(void)
-{
-    ui->thresholdValueLabel->setEnabled(true);
-    ui->thresholdValueSpin->setEnabled(true);
-    ui->thresholdTypeLabel->setEnabled(true);
-    ui->thresholdTypeBox->setEnabled(true);
-    ui->minContourSizeLabel->setEnabled(true);
-    ui->minContourSizeSpin->setEnabled(true);
-    ui->minPcaRatioLabel->setEnabled(true);
-    ui->minPcaRatioSpin->setEnabled(true);
-    ui->maxPcaRatioLabel->setEnabled(true);
-    ui->maxPcaRatioSpin->setEnabled(true);
-    ui->minRadiusLabel->setEnabled(true);
-    ui->minRadiusSpin->setEnabled(true);
-    ui->maxRadiusLabel->setEnabled(true);
-    ui->maxRadiusSpin->setEnabled(true);
-}
-
 void MainWindow::on_actionDefault_triggered()
 {
     this->useCascadeClassifier = true;
@@ -351,7 +253,8 @@ void MainWindow::on_actionDefault_triggered()
 
     this->showColored = true;
 
-    this->disableWidgets();
+    Colonies.resetCounting();
+
     this->updateImgLabel();
 }
 
@@ -361,9 +264,10 @@ void MainWindow::on_actionStandard_module_triggered()
     this->activeModule = standard;
     ui->moduleUsedLabel->setText("Standard");
 
-    this->showColored = false;
+    this->showColored = true;
 
-    this->enableWidgets();
+    Colonies.resetCounting();
+
     this->updateImgLabel();
 }
 
@@ -373,9 +277,10 @@ void MainWindow::on_actionSingle_colonies_triggered()
     this->activeModule = single;
     ui->moduleUsedLabel->setText("Single colonies");
 
-    this->showColored = false;
+    this->showColored = true;
 
-    this->enableWidgets();
+    Colonies.resetCounting();
+
     this->updateImgLabel();
 }
 
@@ -393,7 +298,6 @@ void MainWindow::on_actionWatershed_triggered()
 
     this->showColored = true;
 
-    this->disableWidgets();
     this->updateImgLabel();
 }
 
@@ -401,8 +305,6 @@ void MainWindow::on_actionSettings_triggered()
 {
     this->settingsDialog = new Settings(this);
 
-    connect(this->settingsDialog, SIGNAL(newSpValue(double)), this, SLOT(sp_valueChanged(double)));
-    connect(this->settingsDialog, SIGNAL(newSrValue(double)), this, SLOT(sr_valueChanged(double)));
     connect(this->settingsDialog, SIGNAL(finished(void)), this, SLOT(finishedSettings()));
 
     this->settingsDialog->show();
@@ -426,9 +328,14 @@ void MainWindow::sr_valueChanged(double newValue)
 
 void MainWindow::finishedSettings(void)
 {
-    //Colonies.make_pyrMeanShiftFiltering();
-    updateImgLabel();
+    if(Colonies.thresholdType == NONE) {
+        this->showColored = true;
+    }
+    else {
+        this->showColored = false;
+    }
 
+    updateImgLabel();
     qDebug() << "Finished settings";
 
     return;
