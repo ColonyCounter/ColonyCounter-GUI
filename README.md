@@ -4,7 +4,7 @@ ColonyCounter is currently in a very early stage of development. It is used to c
 
 # Open-Source
 
-The software is published under the [Apache License 2.0](https://github.com/ColonyCounter/ColonyCounter/LICENSE).
+The software is published under the [Apache License 2.0](https://github.com/ColonyCounter/ColonyCounter/blob/master/LICENSE).
 
 The GUI version of the ColonyCounter links against the Qt Framework which is licenced under the LGPL licence.
 
