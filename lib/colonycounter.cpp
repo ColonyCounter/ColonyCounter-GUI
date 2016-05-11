@@ -116,6 +116,10 @@ int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSi
     this->imgOriginal.copyTo(imgRoiTemp, mask);
     cv::Mat imgRoiColor(imgRoiTemp, cv::Rect(this->circleCenterPoint.x-this->circleRadius, this->circleCenterPoint.y-this->circleRadius, this->circleRadius*2, this->circleRadius*2));
 
+    //Belongs to the debugging part, a bit lower
+    cv::Mat contoursImg;
+    imgRoiColor.copyTo(contoursImg);
+
     if( activeModule == single ) {
         this->analyseBlobsAlternative(imgRoi);
     }
@@ -129,6 +133,17 @@ int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSi
     }
 
     foundColonies = this->acceptedColonies.size();
+
+    //--------------
+    //Just for debugging purpose
+    //Draw the found contours a polygon
+    cv::RNG rng(12345);
+    for(unsigned int i = 0; i < this->contours.size(); i++) {
+        cv::Scalar color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255));
+        cv::drawContours(contoursImg, this->contours, i, color, 1, 8, this->hierarchy, 0, cv::Point());
+    }
+    cv::imwrite("5_aB_contours.jpg", contoursImg);
+    //--------------
 
     return 0; //number of found colonies is retrieved with return_numberOfColonies function
 }

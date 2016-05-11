@@ -35,4 +35,5 @@ FORMS    += mainwindow.ui \
 DISTFILES += \
     to-do.txt \
     LICENSE \
-    README.md
+    README.md \
+    TODO.txt
