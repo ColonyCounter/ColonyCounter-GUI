@@ -46,3 +46,7 @@ This is currently a hobby project. We do not have a professional IT background, 
 3. C
     * Create cmd line tool
     * Save/Load settings to/from file
+
+# Known Bugs
+* Contours
+    * Contours that looks like lines are may also be accepted as circles
