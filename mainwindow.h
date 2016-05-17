@@ -39,7 +39,6 @@ public:
     bool eventFilter(QObject *obj, QEvent *event);
     //void mouseMoveEvent(QMouseEvent *);
     void wheelEvent(QWheelEvent *);
-    void mousePressEvent(QMouseEvent *);
     void resizeEvent(QResizeEvent *);
     void updateImgLabel();
     void updateFoundColoniesStr(void);

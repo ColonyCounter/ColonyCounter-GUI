@@ -173,68 +173,61 @@ void MainWindow::wheelEvent(QWheelEvent *event)
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
 
-    if (event->type() == QEvent::MouseMove) {
+    if(event->type() == QEvent::MouseMove) {
 
-    QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-    statusBar()->showMessage(QString("Mouse move (%1,%2)").arg(mouseEvent->pos().x()).arg(mouseEvent->pos().y()));
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        statusBar()->showMessage(QString("Mouse move (%1,%2)").arg(mouseEvent->pos().x()).arg(mouseEvent->pos().y()));
 
-    if( !this->drawCircle && this->drawCircleAllowed ) {
-        //drawCircle indicates that a new circle should be drawn, position or radius changed
-        //drawCircleAllowed is true after chooseCircle button was clicked and till user does right click
-        //updateCircleAllowed reduces the amount of how many times the circle is redrawn, max every 0.1 seconds
-        this->mouseCurrentPos.setX(mouseEvent->pos().x());
-        this->mouseCurrentPos.setY(mouseEvent->pos().y());
-        this->circleCenter = this->mouseCurrentPos;
+        if( !(this->drawCircle) && this->drawCircleAllowed) {
+            //drawCircle indicates that a new circle should be drawn, position or radius changed
+            //drawCircleAllowed is true after chooseCircle button was clicked and till user does right click
+            //updateCircleAllowed reduces the amount of how many times the circle is redrawn, max every 0.1 seconds
 
-        this->drawCircle = this->updateCircleAllowed = true;
-        QTimer::singleShot(100, this, SLOT(updateCircle()));
+            if( obj->objectName() == "imgLabel" ) {
+                this->mouseCurrentPos.setX(mouseEvent->pos().x());
+                this->mouseCurrentPos.setY(mouseEvent->pos().y());
+                this->circleCenter = this->mouseCurrentPos;
+
+                this->drawCircle = this->updateCircleAllowed = true;
+                QTimer::singleShot(100, this, SLOT(updateCircle()));
+            }
+        }
+
     }
 
-  }
+    if( event->type() == QEvent::MouseButtonRelease ) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+
+        if( obj->objectName() == "imgLabel" ) {
+            qDebug() << "Mouse pressed: x: " << mouseEvent->pos().x() << " y: " << mouseEvent->pos().y();
+
+            QPoint mousePosition;
+            mousePosition.setX(mouseEvent->pos().x());
+            mousePosition.setY(mouseEvent->pos().y());
+
+            if((mouseEvent->button() == Qt::LeftButton) && this->editColonies) {
+                qDebug() << "Left mouse button pressed";
+
+                Colonies.addCircle(mousePosition, this->pixmapSize);
+                this->updateFoundColoniesStr(); //update string of found colonies
+            }
+            else if((mouseEvent->button() == Qt::RightButton) && this->editColonies) {
+                qDebug() << "Right mouse button pressed";
+                Colonies.removeCircle(mousePosition, this->pixmapSize);
+
+                Colonies.drawCircles();
+                this->updateFoundColoniesStr(); //update string of found colonies
+            }
+            else if((mouseEvent->button() == Qt::LeftButton) && this->drawCircleAllowed) {
+                qDebug() << "left mouse pressed.";
+                this->drawCircleAllowed = false;
+            }
+        }
+
+    }
 
 
   return false;
-}
-
-void MainWindow::mousePressEvent(QMouseEvent *mouseEvent)
-{
-
-    if( this->drawCircleAllowed && (mouseEvent->buttons() == Qt::LeftButton) ) {
-        this->drawCircleAllowed = false;
-          qDebug() << "Mouse pressed down.";
-    }
-
-    else if( this->editColonies ) {
-        //Need to recalculate position, as image does not occupy all of qLabel
-        //imgLabel width cannot be subtracted when window gets larger without resizing image
-        //float x = (float) mouseEvent->pos().x() - (ui->imgLabel->pos().x() + ui->imgLabel->width() - this->pixmapSize.width());
-        //float y = (float) mouseEvent->pos().y() - (ui->imgLabel->pos().y() + ui->imgLabel->height() - this->pixmapSize.height());
-        float x = (float) mouseEvent->pos().x() - (ui->imgLabel->pos().x());
-        float y = (float) mouseEvent->pos().y() - (ui->imgLabel->size().height() - this->pixmapSize.height()); //gets wrong when window gets resized
-
-        qDebug() << "x: " << ui->imgLabel->pos().x() << "y: " << ui->imgLabel->pos().y();
-        qDebug() << "pixmap.x: " << this->pixmapSize.width() << "pixmap.y: " << this->pixmapSize.height();
-        qDebug() << "imgLabel.x: " << ui->imgLabel->size().width() << "imgLabel.y: " << ui->imgLabel->size().height();
-        qDebug() << "imgLabelSize - pixmapSize" << (ui->imgLabel->size().height() - this->pixmapSize.height());
-
-        QPoint calculatedPosition;
-        calculatedPosition.setX((int) x);
-        calculatedPosition.setY((int) y);
-
-        if( mouseEvent->buttons() == Qt::LeftButton ) {
-            qDebug() << "Left mouse button pressed" << mouseEvent->pos();
-            qDebug() << ui->imgLabel->pos();
-            Colonies.addCircle(calculatedPosition, this->pixmapSize);
-        }
-        else if( mouseEvent->buttons() == Qt::RightButton ) {
-            qDebug() << "Right mouse button pressed" << mouseEvent->pos();
-            qDebug() << ui->imgLabel->pos();
-            Colonies.removeCircle(calculatedPosition, this->pixmapSize);
-
-            Colonies.drawCircles();
-        }
-        this->updateFoundColoniesStr(); //update string of found colonies
-    }
 }
 
 void MainWindow::updateCircle()

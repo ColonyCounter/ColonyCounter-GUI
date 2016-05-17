@@ -273,6 +273,7 @@ void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
         float meanRadius = 0;
         float x = 0;
         float y = 0;
+        float distToMeanPnt = 0;
         for(i=0; i < contour.size(); i++) {
             x = (float) contour.at(i).x;
             y = (float) contour.at(i).y;
@@ -280,7 +281,12 @@ void ColonyCounter::analyseContours(cv::Mat imgRoiColor)
             //calculate distance between meanPoint and current processed point
             float distanceX = (float) (x - meanPoint.x)*(x - meanPoint.x);
             float distanceY = (float) (y - meanPoint.y)*(y - meanPoint.y);
-            meanRadius += (float) sqrt(distanceX+distanceY);
+            float distance = (float) sqrt(distanceX+distanceY);
+            meanRadius += distance;
+
+            //keep track of the distance from every point to mean point
+            //a longer distance has to weight more -> so we can distinguish between circles and lines
+            distToMeanPnt += (float) distance * distance;
         }
 
         meanRadius /= contour.size(); //get the mean of it
@@ -487,6 +493,8 @@ void ColonyCounter::calculateCircleCenterAndRadius(QPoint circleCenter, int circ
 
 int ColonyCounter::isCircle(std::vector<cv::Point> &data)
 {
+    //Needs improvements, maybe use completly different approach here
+
     cv::Mat dataBuffer = cv::Mat(data.size(), 2, CV_32F);
     for(int i = 0; i < dataBuffer.rows; i++) {
         dataBuffer.at<float>(i, 0) = data[i].x;
