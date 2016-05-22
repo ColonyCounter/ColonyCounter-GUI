@@ -18,6 +18,7 @@ Settings::Settings(QWidget *parent) :
     ui->thresholdTypeBox->setCurrentIndex((int) Colonies.thresholdType);
 
     //Mean Shift Filtering
+    ui->enableMeanShiftCheckbox->setChecked(Colonies.pyrMeanShiftEnabled);
     ui->spatialSpin->setValue((double) Colonies.sp);
     ui->colorSpin->setValue((double) Colonies.sr);
 
@@ -49,6 +50,7 @@ void Settings::on_buttonBox_accepted()
     Colonies.thresholdTypeChanged(Colonies.thresholdType);
 
     //Mean Shift Filtering
+    Colonies.pyrMeanShiftEnabled = (bool) ui->enableMeanShiftCheckbox->isChecked();
     Colonies.sp = (double) ui->spatialSpin->value();
     Colonies.sr = (double) ui->colorSpin->value();
 

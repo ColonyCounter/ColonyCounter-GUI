@@ -151,7 +151,7 @@ int ColonyCounter::countColoniesStandard(QPoint circleCenter, int circleRad, QSi
 void ColonyCounter::analyseBlobs(cv::Mat imgRoiColor)
 {
     cv::Mat shiftedImg;
-    cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, this->sp, this->sr);
+    shiftedImg = this->meanShiftFiltering(imgRoiColor);
 
     cv::imwrite("0_aB_imgRoiColor.jpg", imgRoiColor);
     cv::imwrite("1_aB_shiftedImg.jpg", shiftedImg);
@@ -221,7 +221,7 @@ void ColonyCounter::analyseBlobsWatershed(cv::Mat imgRoiColor)
 {
     //Not really promising right know
     cv::Mat shiftedImg;
-    cv::pyrMeanShiftFiltering(imgRoiColor, shiftedImg, 21.0, 51.0); //values may need to be changed
+    shiftedImg = this->meanShiftFiltering(imgRoiColor);
 
     cv::imwrite("0_aBW_imgRoiColor.jpg", imgRoiColor);
     cv::imwrite("1_aBW_shiftedImg.jpg", shiftedImg);
@@ -512,6 +512,20 @@ int ColonyCounter::isCircle(std::vector<cv::Point> &data)
     }
 
     return 1;
+}
+
+cv::Mat ColonyCounter::meanShiftFiltering(cv::Mat inputImg)
+{
+    cv::Mat tempImg;
+
+    if( this->pyrMeanShiftEnabled ) {
+        cv::pyrMeanShiftFiltering(inputImg, tempImg, this->sp, this->sr);
+    }
+    else {
+        inputImg.copyTo(tempImg); //the calling functions are working on outputImg after calling this func
+    }
+
+    return tempImg;
 }
 
 std::vector<std::vector<cv::Point>> ColonyCounter::seperateColonies(std::vector<cv::Point> &data, int k)

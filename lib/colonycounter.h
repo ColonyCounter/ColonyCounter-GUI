@@ -107,6 +107,7 @@ public:
     void calculateCircleCenterAndRadius(QPoint, int, QSize, cv::Mat);
     int isCircle(std::vector<cv::Point> &);
     std::vector<std::vector<cv::Point>> seperateColonies(std::vector<cv::Point> &, int);
+    cv::Mat meanShiftFiltering(cv::Mat inputImg);
     void storeAndPaintColony(cv::Point, float, std::vector<cv::Point>);
     unsigned int root(unsigned int);
     void drawCircles();
